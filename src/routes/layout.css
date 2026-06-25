@@ -1,3 +1,38 @@
 @import 'tailwindcss';
 @plugin '@tailwindcss/forms';
 @plugin '@tailwindcss/typography';
+
+@theme {
+	--radius-card: var(--radius-card);
+	--radius-chip: var(--radius-chip);
+	--radius-pill: var(--radius-pill);
+}
+
+/* スクロールバーのカスタマイズ */
+::-webkit-scrollbar {
+	width: 8px;
+	height: 8px;
+}
+
+::-webkit-scrollbar-track {
+	background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+	background: var(--color-surface-border, rgba(0, 0, 0, 0.15));
+	border-radius: 9999px;
+	border: 2px solid transparent;
+	background-clip: padding-box;
+}
+
+::-webkit-scrollbar-thumb:hover {
+	background: var(--color-nav-inactive, rgba(0, 0, 0, 0.3));
+	border: 2px solid transparent;
+	background-clip: padding-box;
+}
+
+/* Firefox用 */
+* {
+	scrollbar-width: thin;
+	scrollbar-color: var(--color-surface-border, rgba(0, 0, 0, 0.15)) transparent;
+}

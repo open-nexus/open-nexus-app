@@ -147,7 +147,7 @@
 	}
 </script>
 
-<div class="relative overflow-hidden rounded-xl">
+<div class="relative overflow-hidden rounded-card">
 	<!-- 削除ボタン（背景） -->
 	<button
 		type="button"

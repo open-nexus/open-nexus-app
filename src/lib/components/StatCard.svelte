@@ -27,7 +27,7 @@
 </script>
 
 <div
-	class="flex flex-col gap-1 rounded-xl border border-[var(--color-surface-border)] bg-[var(--color-surface-card)] px-4 py-3 shadow-[var(--shadow-card)] {klass}"
+	class="flex flex-col gap-1 rounded-card border border-[var(--color-surface-border)] bg-[var(--color-surface-card)] px-4 py-3 shadow-[var(--shadow-card)] {klass}"
 >
 	<span class="text-xs text-[var(--color-nav-inactive)]">{label}</span>
 	<div class="flex items-baseline gap-1">

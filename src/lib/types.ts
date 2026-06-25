@@ -128,7 +128,14 @@ export type CustomColor = {
 
 // ----- 外部リンク -----
 export type ExternalLinkCategory = 'study' | 'campus' | 'tools' | 'other';
-export type SearchProviderId = 'google' | 'bing' | 'duckduckgo';
+export type SearchProviderId =
+	| 'google'
+	| 'bing'
+	| 'duckduckgo'
+	| 'chatgpt'
+	| 'claude'
+	| 'grok'
+	| 'perplexity';
 
 export type ExternalLink = {
 	id: string;
@@ -171,6 +178,9 @@ export type UserSettings = {
 	homeShowExternalLinks: boolean;
 	openLinksInApp: boolean;
 	homeSearchProvider: SearchProviderId;
+	weatherTimeFormat: 'minute' | 'second';
+	weatherTempUnit: 'celsius' | 'fahrenheit';
+	timeFormat: '12h' | '24h';
 	timetableDayRange: 5 | 6 | 7;
 	timetablePeriodRange: 4 | 5 | 6 | 7;
 	timetableOndemandCols: 0 | 1 | 2 | 3;
@@ -196,6 +206,8 @@ export type UserSettings = {
 	fontFamily: 'system' | 'outfit' | 'sawarabi' | 'noto';
 	/** 背景画像をすべての画面（アプリ全体）に適用するか */
 	bgImageAllPages: boolean;
+	/** カスタムマークダウンメモ */
+	customMemo: string;
 };
 
 export const DEFAULT_USER_SETTINGS: UserSettings = {
@@ -215,6 +227,9 @@ export const DEFAULT_USER_SETTINGS: UserSettings = {
 	homeShowExternalLinks: true,
 	openLinksInApp: true,
 	homeSearchProvider: 'google',
+	weatherTimeFormat: 'minute',
+	weatherTempUnit: 'celsius',
+	timeFormat: '24h',
 	timetableDayRange: 5,
 	timetablePeriodRange: 7,
 	timetableOndemandCols: 1,
@@ -249,5 +264,6 @@ export const DEFAULT_USER_SETTINGS: UserSettings = {
 	dataCdnUrl: '',
 	emojiStyle: 'native',
 	fontFamily: 'system',
-	bgImageAllPages: false
+	bgImageAllPages: false,
+	customMemo: ''
 };

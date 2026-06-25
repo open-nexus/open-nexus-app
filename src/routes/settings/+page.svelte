@@ -129,7 +129,7 @@
 	}
 
 	// ----- 検索インデックス -----
-	const searchItems: SearchItem[] = [
+	const searchItems = $derived<SearchItem[]>([
 		{
 			category: m.settings_locale(),
 			label: m.settings_locale_ja(),
@@ -299,7 +299,7 @@
 			sectionId: 'settings-about'
 		},
 		{ category: m.settings_about(), label: m.settings_about_source(), sectionId: 'settings-about' }
-	];
+	]);
 
 	// ----- セグメントコントロール汎用 -----
 	const localeOptions: SegmentOption[] = [
@@ -366,7 +366,11 @@
 	const searchProviderOptions: { value: SearchProviderId; label: string }[] = [
 		{ value: 'google', label: 'Google' },
 		{ value: 'bing', label: 'Bing' },
-		{ value: 'duckduckgo', label: 'DuckDuckGo' }
+		{ value: 'duckduckgo', label: 'DuckDuckGo' },
+		{ value: 'chatgpt', label: 'ChatGPT' },
+		{ value: 'claude', label: 'Claude' },
+		{ value: 'grok', label: 'Grok' },
+		{ value: 'perplexity', label: 'Perplexity' }
 	];
 
 	function handleBgImageUpload(e: Event) {
@@ -413,7 +417,7 @@
 				{#each localeOptions as opt (opt.value)}
 					<button
 						type="button"
-						class="rounded-lg border px-2 py-2 text-center text-sm transition-colors {settingsStore
+						class="rounded-chip border px-2 py-2 text-center text-sm transition-colors {settingsStore
 							.settings.locale === opt.value
 							? 'border-[var(--color-primary-500)] bg-[var(--color-primary-50)] text-[var(--color-primary-600)]'
 							: 'border-[var(--color-surface-border)] text-[var(--color-nav-active)] hover:bg-[var(--color-surface-muted)]'}"
@@ -479,7 +483,7 @@
 				{#each themeModeOptions as opt (opt.value)}
 					<button
 						type="button"
-						class="rounded-lg border px-2 py-2 text-center text-sm transition-colors {settingsStore
+						class="rounded-chip border px-2 py-2 text-center text-sm transition-colors {settingsStore
 							.settings.theme === opt.value
 							? 'border-[var(--color-primary-500)] bg-[var(--color-primary-50)] text-[var(--color-primary-600)]'
 							: 'border-[var(--color-surface-border)] text-[var(--color-nav-active)] hover:bg-[var(--color-surface-muted)]'}"
@@ -500,7 +504,7 @@
 				{#each emojiStyleOptions as opt (opt.value)}
 					<button
 						type="button"
-						class="rounded-lg border px-2 py-2 text-center text-sm transition-colors {settingsStore
+						class="rounded-chip border px-2 py-2 text-center text-sm transition-colors {settingsStore
 							.settings.emojiStyle === opt.value
 							? 'border-[var(--color-primary-500)] bg-[var(--color-primary-50)] text-[var(--color-primary-600)]'
 							: 'border-[var(--color-surface-border)] text-[var(--color-nav-active)] hover:bg-[var(--color-surface-muted)]'}"
@@ -534,7 +538,7 @@
 				{#each semesterOptions as opt (opt.value)}
 					<button
 						type="button"
-						class="rounded-lg border px-2 py-2 text-center text-sm transition-colors {settingsStore
+						class="rounded-chip border px-2 py-2 text-center text-sm transition-colors {settingsStore
 							.settings.semester === opt.value
 							? 'border-[var(--color-primary-500)] bg-[var(--color-primary-50)] text-[var(--color-primary-600)]'
 							: 'border-[var(--color-surface-border)] text-[var(--color-nav-active)] hover:bg-[var(--color-surface-muted)]'}"
@@ -637,20 +641,79 @@
 					const target = e.currentTarget as HTMLSelectElement;
 					settingsStore.update({ homeSearchProvider: target.value as SearchProviderId });
 				}}
-				class="w-full rounded-lg border border-[var(--color-surface-border)] bg-[var(--color-surface-card)] px-3 py-2 text-sm text-[var(--color-nav-active)] outline-none focus:border-[var(--color-primary-500)] focus:ring-2 focus:ring-[var(--color-primary-100)]"
+				class="w-full rounded-chip border border-[var(--color-surface-border)] bg-[var(--color-surface-card)] px-3 py-2 text-sm text-[var(--color-nav-active)] outline-none focus:border-[var(--color-primary-500)] focus:ring-2 focus:ring-[var(--color-primary-100)]"
 			>
 				{#each searchProviderOptions as opt (opt.value)}
 					<option value={opt.value}>{opt.label}</option>
 				{/each}
 			</select>
 		</div>
-		<div class="flex items-center justify-between px-4 py-3">
-			<span class="text-sm text-[var(--color-nav-active)]">{m.settings_open_links_in_app()}</span>
-			<Switch
-				checked={settingsStore.settings.openLinksInApp}
-				onchange={(v) => settingsStore.update({ openLinksInApp: v })}
-			/>
+		<div class="border-b border-[var(--color-surface-border)] px-4 py-3">
+			<label
+				for="settings-home-weather-temp-unit"
+				class="mb-2 block text-sm text-[var(--color-nav-active)]"
+			>
+				{m.settings_weather_temp_unit()}
+			</label>
+			<select
+				id="settings-home-weather-temp-unit"
+				value={settingsStore.settings.weatherTempUnit}
+				onchange={(e) => {
+					const target = e.currentTarget as HTMLSelectElement;
+					settingsStore.update({ weatherTempUnit: target.value as 'celsius' | 'fahrenheit' });
+				}}
+				class="w-full rounded-chip border border-[var(--color-surface-border)] bg-[var(--color-surface-card)] px-3 py-2 text-sm text-[var(--color-nav-active)] outline-none focus:border-[var(--color-primary-500)] focus:ring-2 focus:ring-[var(--color-primary-100)]"
+			>
+				<option value="celsius">{m.settings_weather_temp_unit_celsius()}</option>
+				<option value="fahrenheit">{m.settings_weather_temp_unit_fahrenheit()}</option>
+			</select>
 		</div>
+		<div class="border-b border-[var(--color-surface-border)] px-4 py-3">
+			<label
+				for="settings-home-weather-time-format"
+				class="mb-2 block text-sm text-[var(--color-nav-active)]"
+			>
+				{m.settings_weather_time_format()}
+			</label>
+			<select
+				id="settings-home-weather-time-format"
+				value={settingsStore.settings.weatherTimeFormat}
+				onchange={(e) => {
+					const target = e.currentTarget as HTMLSelectElement;
+					settingsStore.update({ weatherTimeFormat: target.value as 'minute' | 'second' });
+				}}
+				class="w-full rounded-chip border border-[var(--color-surface-border)] bg-[var(--color-surface-card)] px-3 py-2 text-sm text-[var(--color-nav-active)] outline-none focus:border-[var(--color-primary-500)] focus:ring-2 focus:ring-[var(--color-primary-100)]"
+			>
+				<option value="minute">{m.settings_weather_time_format_minute()}</option>
+				<option value="second">{m.settings_weather_time_format_second()}</option>
+			</select>
+		</div>
+		<div class="border-b border-[var(--color-surface-border)] px-4 py-3">
+			<label for="settings-time-format" class="mb-2 block text-sm text-[var(--color-nav-active)]">
+				{m.settings_time_format()}
+			</label>
+			<select
+				id="settings-time-format"
+				value={settingsStore.settings.timeFormat}
+				onchange={(e) => {
+					const target = e.currentTarget as HTMLSelectElement;
+					settingsStore.update({ timeFormat: target.value as '12h' | '24h' });
+				}}
+				class="w-full rounded-chip border border-[var(--color-surface-border)] bg-[var(--color-surface-card)] px-3 py-2 text-sm text-[var(--color-nav-active)] outline-none focus:border-[var(--color-primary-500)] focus:ring-2 focus:ring-[var(--color-primary-100)]"
+			>
+				<option value="12h">{m.settings_time_format_12h()}</option>
+				<option value="24h">{m.settings_time_format_24h()}</option>
+			</select>
+		</div>
+		{#if Capacitor.isNativePlatform()}
+			<div class="flex items-center justify-between px-4 py-3">
+				<span class="text-sm text-[var(--color-nav-active)]">{m.settings_open_links_in_app()}</span>
+				<Switch
+					checked={settingsStore.settings.openLinksInApp}
+					onchange={(v) => settingsStore.update({ openLinksInApp: v })}
+				/>
+			</div>
+		{/if}
 	</SettingsSection>
 
 	<!-- ===== Timetable ===== -->
@@ -718,7 +781,7 @@
 			<div class="flex flex-col gap-3">
 				{#if settingsStore.settings.timetableBgImage}
 					<div
-						class="relative w-32 aspect-[3/4] rounded-lg overflow-hidden border border-[var(--color-surface-border)] shadow-sm bg-[var(--color-surface-muted)]"
+						class="relative w-32 aspect-[3/4] rounded-card overflow-hidden border border-[var(--color-surface-border)] shadow-sm bg-[var(--color-surface-muted)]"
 					>
 						<img
 							src={settingsStore.settings.timetableBgImage}
@@ -730,7 +793,7 @@
 
 				<div class="flex gap-2">
 					<label
-						class="inline-flex h-8 cursor-pointer items-center justify-center gap-2 rounded-[var(--radius-chip)] border border-[var(--color-surface-border)] bg-[var(--color-surface-card)] px-3 text-sm font-medium text-[var(--color-nav-active)] transition-colors hover:bg-[var(--color-surface-muted)]"
+						class="inline-flex h-8 cursor-pointer items-center justify-center gap-2 rounded-chip border border-[var(--color-surface-border)] bg-[var(--color-surface-card)] px-3 text-sm font-medium text-[var(--color-nav-active)] transition-colors hover:bg-[var(--color-surface-muted)]"
 					>
 						<Upload size={14} />
 						画像を選択
@@ -778,7 +841,7 @@
 						<span class="text-xs font-semibold w-8">{p}限</span>
 						<input
 							type="time"
-							class="rounded-lg border border-[var(--color-surface-border)] bg-[var(--color-surface-card)] px-2 py-1 text-xs text-[var(--color-nav-active)] focus:outline-none focus:ring-1 focus:ring-[var(--color-primary-500)]"
+							class="rounded-chip border border-[var(--color-surface-border)] bg-[var(--color-surface-card)] px-2 py-1 text-xs text-[var(--color-nav-active)] focus:outline-none focus:ring-1 focus:ring-[var(--color-primary-500)]"
 							value={time.start}
 							onchange={(e) => {
 								const target = e.currentTarget as HTMLInputElement;
@@ -790,7 +853,7 @@
 						<span class="text-xs text-[var(--color-surface-muted-foreground)]">〜</span>
 						<input
 							type="time"
-							class="rounded-lg border border-[var(--color-surface-border)] bg-[var(--color-surface-card)] px-2 py-1 text-xs text-[var(--color-nav-active)] focus:outline-none focus:ring-1 focus:ring-[var(--color-primary-500)]"
+							class="rounded-chip border border-[var(--color-surface-border)] bg-[var(--color-surface-card)] px-2 py-1 text-xs text-[var(--color-nav-active)] focus:outline-none focus:ring-1 focus:ring-[var(--color-primary-500)]"
 							value={time.end}
 							onchange={(e) => {
 								const target = e.currentTarget as HTMLInputElement;
@@ -815,7 +878,7 @@
 				{#each weekStartOptions as opt (opt.value)}
 					<button
 						type="button"
-						class="rounded-lg border px-2 py-2 text-center text-sm transition-colors {settingsStore
+						class="rounded-chip border px-2 py-2 text-center text-sm transition-colors {settingsStore
 							.settings.calendarWeekStart === opt.value
 							? 'border-[var(--color-primary-500)] bg-[var(--color-primary-50)] text-[var(--color-primary-600)]'
 							: 'border-[var(--color-surface-border)] text-[var(--color-nav-active)] hover:bg-[var(--color-surface-muted)]'}"
@@ -1006,7 +1069,7 @@
 				{m.settings_data_export()}
 			</Button>
 			<label
-				class="inline-flex h-8 cursor-pointer items-center justify-center gap-2 rounded-[var(--radius-chip)] border border-[var(--color-surface-border)] bg-[var(--color-surface-card)] px-3 text-sm font-medium text-[var(--color-nav-active)] transition-colors hover:bg-[var(--color-surface-muted)]"
+				class="inline-flex h-8 cursor-pointer items-center justify-center gap-2 rounded-chip border border-[var(--color-surface-border)] bg-[var(--color-surface-card)] px-3 text-sm font-medium text-[var(--color-nav-active)] transition-colors hover:bg-[var(--color-surface-muted)]"
 			>
 				<Upload size={16} />
 				{m.settings_data_import()}
@@ -1121,7 +1184,7 @@
 		class="space-y-4"
 	>
 		<div
-			class="rounded-lg border border-[var(--color-surface-border)] bg-[var(--color-surface-muted)]/50 p-3"
+			class="rounded-chip border border-[var(--color-surface-border)] bg-[var(--color-surface-muted)]/50 p-3"
 		>
 			<div class="mb-2 flex items-center gap-2 text-sm font-medium text-[var(--color-nav-active)]">
 				<Info size={16} class="text-[var(--color-primary-500)]" />

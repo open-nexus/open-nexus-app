@@ -16,7 +16,6 @@ export { default as SideNav } from './SideNav.svelte';
 export { default as PageHeader } from './PageHeader.svelte';
 export { default as ListItem } from './ListItem.svelte';
 export { default as SectionHeader } from './SectionHeader.svelte';
-export { default as InAppBrowser } from './inapp-browser/InAppBrowser.svelte';
 export { default as EmptyState } from './EmptyState.svelte';
 export { default as ProgressRing } from './ProgressRing.svelte';
 export { default as StatCard } from './StatCard.svelte';

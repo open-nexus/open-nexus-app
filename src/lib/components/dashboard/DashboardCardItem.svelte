@@ -9,7 +9,9 @@
 -->
 <script lang="ts">
 	import type { Component } from 'svelte';
-	import { resolve } from '$app/paths';
+	import { Capacitor } from '@capacitor/core';
+	import { openLink } from '$lib/browser';
+	import { settingsStore } from '$lib/stores';
 	import { m } from '$lib/paraglide/messages';
 	import { sanitize } from '$lib/html-renderer';
 	import type {
@@ -92,6 +94,7 @@
 	}
 
 	let { card }: Props = $props();
+	const settings = $derived(settingsStore.settings);
 
 	// --- アイコン名 → lucide コンポーネントのマッピング ---
 	const iconMap: Record<
@@ -221,20 +224,6 @@
 		}
 	}
 
-	// --- external-url: href 構築 ---
-	const externalHref = $derived.by(() => {
-		if (card.type !== 'external-url') return undefined;
-		const c = card as ExternalUrlCard;
-		if (c.openInApp) {
-			return resolve(`/inapp-browser?url=${encodeURIComponent(c.url)}`);
-		}
-		return c.url;
-	});
-
-	const isExternalTarget = $derived(
-		card.type === 'external-url' && !(card as ExternalUrlCard).openInApp
-	);
-
 	// html-internal の banner 判定
 	const isBanner = $derived(
 		card.type === 'html-internal' && (card as HtmlInternalCard).layout === 'banner'
@@ -279,11 +268,16 @@
 	</div>
 {:else if card.type === 'external-url'}
 	{@const c = card as ExternalUrlCard}
-	<!-- eslint-disable svelte/no-navigation-without-resolve -->
 	<a
-		href={externalHref ?? '#'}
-		target={isExternalTarget ? '_blank' : undefined}
-		rel={isExternalTarget ? 'noopener noreferrer' : undefined}
+		href={c.url}
+		target="_blank"
+		rel="noopener noreferrer"
+		onclick={(e) => {
+			if (Capacitor.isNativePlatform() && c.openInApp && settings.openLinksInApp) {
+				e.preventDefault();
+				void openLink(c.url, true);
+			}
+		}}
 		class="flex flex-col items-start gap-2 rounded-[var(--radius-card)] border border-[var(--color-surface-border)] bg-[var(--color-surface-card)] px-3 py-3 text-left shadow-[var(--shadow-card)] transition-colors hover:bg-[var(--color-surface-muted)]"
 	>
 		<div class="flex w-full items-center justify-between">
@@ -296,7 +290,6 @@
 		</div>
 		<span class="text-sm font-semibold text-[var(--color-nav-active)]">{c.title}</span>
 	</a>
-	<!-- eslint-enable svelte/no-navigation-without-resolve -->
 {:else if card.type === 'webview-popup'}
 	{@const c = card as WebviewPopupCard}
 	<button

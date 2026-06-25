@@ -49,7 +49,7 @@
 	<!-- eslint-disable svelte/no-navigation-without-resolve -->
 	<a
 		href={resolvedHref}
-		class="flex items-center gap-3 rounded-xl border border-[var(--color-surface-border)] bg-[var(--color-surface-card)] px-4 py-3 transition-colors hover:bg-[var(--color-surface-muted)] {klass}"
+		class="flex items-center gap-3 rounded-card border border-[var(--color-surface-border)] bg-[var(--color-surface-card)] px-4 py-3 transition-colors hover:bg-[var(--color-surface-muted)] {klass}"
 	>
 		{@render body()}
 	</a>
@@ -58,13 +58,13 @@
 	<button
 		type="button"
 		{onclick}
-		class="flex w-full items-center gap-3 rounded-xl border border-[var(--color-surface-border)] bg-[var(--color-surface-card)] px-4 py-3 text-left transition-colors hover:bg-[var(--color-surface-muted)] {klass}"
+		class="flex w-full items-center gap-3 rounded-card border border-[var(--color-surface-border)] bg-[var(--color-surface-card)] px-4 py-3 text-left transition-colors hover:bg-[var(--color-surface-muted)] {klass}"
 	>
 		{@render body()}
 	</button>
 {:else}
 	<div
-		class="flex items-center gap-3 rounded-xl border border-[var(--color-surface-border)] bg-[var(--color-surface-card)] px-4 py-3 {klass}"
+		class="flex items-center gap-3 rounded-card border border-[var(--color-surface-border)] bg-[var(--color-surface-card)] px-4 py-3 {klass}"
 		class:opacity-50={disabled}
 	>
 		{@render body()}
@@ -74,7 +74,7 @@
 {#snippet body()}
 	{#if Icon}
 		<div
-			class="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg"
+			class="flex h-9 w-9 shrink-0 items-center justify-center rounded-chip"
 			style="background-color: {iconColor}1A; color: {iconColor}"
 		>
 			<Icon size={18} />

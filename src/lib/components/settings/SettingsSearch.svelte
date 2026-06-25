@@ -101,7 +101,9 @@
 		switch (e.key) {
 			case 'ArrowDown':
 				e.preventDefault();
-				selectedIndex = Math.min(selectedIndex + 1, results.length - 1);
+				if (results.length > 0) {
+					selectedIndex = Math.min(selectedIndex + 1, results.length - 1);
+				}
 				break;
 			case 'ArrowUp':
 				e.preventDefault();
@@ -109,7 +111,7 @@
 				break;
 			case 'Enter':
 				e.preventDefault();
-				if (results[selectedIndex]) {
+				if (results.length > 0 && results[selectedIndex]) {
 					scrollToSection(results[selectedIndex].sectionId);
 				}
 				break;
@@ -176,7 +178,7 @@
 						{m.empty_no_results()}
 					</div>
 				{:else}
-					{#each results as result, i (result.sectionId)}
+					{#each results as result, i (result.sectionId + '-' + result.label)}
 						<button
 							type="button"
 							class="flex w-full items-center justify-between px-4 py-2.5 text-left transition-colors hover:bg-[var(--color-surface-muted)] {i ===

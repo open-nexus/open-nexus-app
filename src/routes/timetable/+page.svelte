@@ -224,7 +224,7 @@
 			<span class="sr-only">{m.settings_semester()}</span>
 			<select
 				bind:value={currentSemester}
-				class="h-9 w-full cursor-pointer appearance-none rounded-full border border-[var(--color-surface-border)] bg-[var(--color-surface-card)]/95 py-1.5 pl-4 pr-9 text-center text-sm font-bold text-[var(--color-nav-active)] shadow-sm outline-none transition-colors hover:bg-[var(--color-surface-muted)] focus:border-[var(--color-primary-500)] focus:ring-2 focus:ring-[var(--color-primary-500)]/25"
+				class="h-9 w-full cursor-pointer appearance-none rounded-pill border border-[var(--color-surface-border)] bg-[var(--color-surface-card)]/95 py-1.5 pl-4 pr-9 text-center text-sm font-bold text-[var(--color-nav-active)] shadow-sm outline-none transition-colors hover:bg-[var(--color-surface-muted)] focus:border-[var(--color-primary-500)] focus:ring-2 focus:ring-[var(--color-primary-500)]/25"
 				style="-webkit-appearance: none; -moz-appearance: none; appearance: none;"
 			>
 				<option value="spring"
@@ -269,7 +269,7 @@
 			<button
 				type="button"
 				onclick={handleAddClick}
-				class="flex w-full items-center justify-center gap-2 rounded-xl border-2 border-dashed border-[var(--color-surface-border)] bg-[var(--color-surface-card)]/80 backdrop-blur-xs py-3.5 text-sm font-semibold text-[var(--color-nav-active)] transition-all hover:bg-[var(--color-surface-muted)]"
+				class="flex w-full items-center justify-center gap-2 rounded-card border-2 border-dashed border-[var(--color-surface-border)] bg-[var(--color-surface-card)]/80 backdrop-blur-xs py-3.5 text-sm font-semibold text-[var(--color-nav-active)] transition-all hover:bg-[var(--color-surface-muted)]"
 			>
 				<Plus size={16} />
 				授業を追加
@@ -277,7 +277,7 @@
 
 			<!-- Total credits card -->
 			<div
-				class="flex items-center justify-between rounded-xl bg-[var(--color-primary-50)] text-[var(--color-primary-800)] p-4 shadow-sm"
+				class="flex items-center justify-between rounded-card bg-[var(--color-primary-50)] text-[var(--color-primary-800)] p-4 shadow-sm"
 			>
 				<div class="flex items-center gap-2.5">
 					<span

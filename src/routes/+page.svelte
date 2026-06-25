@@ -1,5 +1,6 @@
 <script lang="ts">
 	import { resolve } from '$app/paths';
+	import { openLink } from '$lib/browser';
 	import { m } from '$lib/paraglide/messages';
 	import { settingsStore } from '$lib/stores';
 	import type { ExternalLink, SearchProviderId } from '$lib/types';
@@ -87,12 +88,30 @@
 	let linkName = $state('');
 	let linkUrl = $state('');
 	let searchQuery = $state('');
+	let textareaElement = $state<HTMLTextAreaElement | null>(null);
+
+	$effect(() => {
+		if (textareaElement && searchQuery !== undefined) {
+			textareaElement.style.height = 'auto';
+			textareaElement.style.height = `${textareaElement.scrollHeight}px`;
+		}
+	});
 
 	const searchProviders: { id: SearchProviderId; label: string; searchUrl: string }[] = [
 		{ id: 'google', label: 'Google', searchUrl: 'https://www.google.com/search?q=' },
 		{ id: 'bing', label: 'Bing', searchUrl: 'https://www.bing.com/search?q=' },
-		{ id: 'duckduckgo', label: 'DuckDuckGo', searchUrl: 'https://duckduckgo.com/?q=' }
+		{ id: 'duckduckgo', label: 'DuckDuckGo', searchUrl: 'https://duckduckgo.com/?q=' },
+		{ id: 'chatgpt', label: 'ChatGPT', searchUrl: 'https://chatgpt.com/?q=' },
+		{ id: 'claude', label: 'Claude', searchUrl: 'https://claude.ai/new?q=' },
+		{ id: 'grok', label: 'Grok', searchUrl: 'https://grok.com/?q=' },
+		{ id: 'perplexity', label: 'Perplexity', searchUrl: 'https://www.perplexity.ai/?q=' }
 	];
+
+	const activeProvider = $derived(
+		searchProviders.find((item) => item.id === settings.homeSearchProvider) ?? searchProviders[0]
+	);
+
+	const searchPlaceholder = $derived(m.search_with_provider({ provider: activeProvider.label }));
 
 	const customStudyLinks = $derived(
 		settings.externalLinks
@@ -117,31 +136,136 @@
 
 	const isNativeApp = $derived(Capacitor.isNativePlatform());
 
-	function linkHref(url: string, forceExternal = false) {
-		if (forceExternal || !isNativeApp) return url;
-		return resolve(`/inapp-browser?url=${encodeURIComponent(url)}`);
+	function linkHref(url: string) {
+		return url;
 	}
 
-	function linkTarget(forceExternal = false) {
-		return forceExternal || !isNativeApp ? '_blank' : undefined;
+	function linkTarget() {
+		return '_blank';
 	}
 
-	function linkRel(forceExternal = false) {
-		return forceExternal || !isNativeApp ? 'noopener noreferrer' : undefined;
+	function linkRel() {
+		return 'noopener noreferrer';
 	}
 
-	function submitWebSearch() {
+	function handleLinkClick(e: MouseEvent, url: string, forceExternal = false) {
+		if (!forceExternal && isNativeApp && settings.openLinksInApp) {
+			e.preventDefault();
+			void openLink(url, true);
+		}
+	}
+
+	async function submitWebSearch() {
 		const query = searchQuery.trim();
 		if (!query) return;
 		const provider =
 			searchProviders.find((item) => item.id === settings.homeSearchProvider) ?? searchProviders[0];
 		const url = `${provider.searchUrl}${encodeURIComponent(query)}`;
-		if (isNativeApp) {
-			window.location.href = resolve(`/inapp-browser?url=${encodeURIComponent(url)}`);
+
+		const isAIProvider = ['chatgpt', 'claude', 'grok', 'perplexity'].includes(provider.id);
+
+		// AIチャットへのログインや挙動を保証するため、AIプロバイダはネイティブ環境でも外部ブラウザで開く
+		if (isNativeApp && !isAIProvider && settings.openLinksInApp) {
+			void openLink(url, true);
 		} else {
 			window.open(url, '_blank', 'noopener,noreferrer');
 		}
 	}
+
+	import { onDestroy } from 'svelte';
+
+	let suggestions = $state<string[]>([]);
+	let showSuggestions = $state(false);
+	let suggestTimeout: any = null;
+
+	function handleSearchInput() {
+		if (suggestTimeout) clearTimeout(suggestTimeout);
+
+		const query = searchQuery.trim();
+		if (!query || query.length > 30 || query.includes('\n')) {
+			suggestions = [];
+			showSuggestions = false;
+			return;
+		}
+
+		suggestTimeout = setTimeout(async () => {
+			try {
+				const fetched = await fetchSuggestions(query);
+				suggestions = fetched;
+				showSuggestions = suggestions.length > 0;
+			} catch (err) {
+				console.error('Failed to fetch suggestions:', err);
+			}
+		}, 200);
+	}
+
+	function fetchSuggestions(query: string): Promise<string[]> {
+		return new Promise((resolve) => {
+			if (typeof window === 'undefined') {
+				resolve([]);
+				return;
+			}
+
+			const callbackName = 'googleSuggestCallback_' + Math.random().toString(36).substring(2, 9);
+			(window as any)[callbackName] = (data: any) => {
+				delete (window as any)[callbackName];
+				const scriptElement = document.getElementById(callbackName);
+				if (scriptElement) {
+					document.body.removeChild(scriptElement);
+				}
+				if (data && Array.isArray(data[1])) {
+					// サジェストの型が単純な文字列でない場合があるため、クレンジングを行う
+					const cleaned = data[1].map((item: any) => {
+						if (typeof item === 'string') return item;
+						if (Array.isArray(item) && typeof item[0] === 'string') return item[0];
+						if (typeof item === 'object' && item !== null) {
+							return item.phrase || item.name || String(item);
+						}
+						return String(item);
+					});
+					resolve(cleaned);
+				} else {
+					resolve([]);
+				}
+			};
+
+			const script = document.createElement('script');
+			script.id = callbackName;
+			// client=firefox を使用してクリーンなサジェスト候補配列を取得する
+			script.src = `https://suggestqueries.google.com/complete/search?client=firefox&hl=ja&q=${encodeURIComponent(query)}&jsonp=${callbackName}`;
+			script.onerror = () => {
+				delete (window as any)[callbackName];
+				const scriptElement = document.getElementById(callbackName);
+				if (scriptElement) {
+					document.body.removeChild(scriptElement);
+				}
+				resolve([]);
+			};
+			document.body.appendChild(script);
+		});
+	}
+
+	// 外側クリックでサジェストポップアップを閉じる
+	$effect(() => {
+		const handleClickOutside = (e: MouseEvent) => {
+			const target = e.target as HTMLElement;
+			if (!target.closest('.search-container-relative')) {
+				showSuggestions = false;
+			}
+		};
+		if (typeof document !== 'undefined') {
+			document.addEventListener('click', handleClickOutside);
+		}
+		return () => {
+			if (typeof document !== 'undefined') {
+				document.removeEventListener('click', handleClickOutside);
+			}
+		};
+	});
+
+	onDestroy(() => {
+		if (suggestTimeout) clearTimeout(suggestTimeout);
+	});
 
 	function openAddLink() {
 		editingLinkId = null;
@@ -289,13 +413,65 @@
 		{/if}
 
 		<form
-			class="flex items-center gap-2 rounded-2xl border border-[var(--color-surface-border)] bg-[var(--color-surface-card)] p-2"
+			class="flex items-end gap-2 rounded-card border border-[var(--color-surface-border)] bg-[var(--color-surface-card)] p-2"
 			onsubmit={(e) => {
 				e.preventDefault();
 				submitWebSearch();
+				showSuggestions = false;
 			}}
 		>
-			<TextField bind:value={searchQuery} placeholder="Web検索" />
+			<div class="relative search-container-relative flex-1">
+				<textarea
+					bind:this={textareaElement}
+					bind:value={searchQuery}
+					rows={1}
+					placeholder={searchPlaceholder}
+					oninput={(e) => {
+						const target = e.currentTarget;
+						target.style.height = 'auto';
+						target.style.height = `${target.scrollHeight}px`;
+						handleSearchInput();
+					}}
+					onfocus={() => {
+						if (suggestions.length > 0 && searchQuery.length <= 30 && !searchQuery.includes('\n')) {
+							showSuggestions = true;
+						}
+					}}
+					onkeydown={(e) => {
+						if (e.key === 'Enter') {
+							if (!e.shiftKey) {
+								e.preventDefault();
+								submitWebSearch();
+								showSuggestions = false;
+							} else {
+								showSuggestions = false;
+							}
+						}
+					}}
+					class="block w-full resize-none border-0 bg-transparent px-3 py-2 text-sm leading-6 text-[var(--color-nav-active)] placeholder-[var(--color-nav-inactive)] focus:ring-0 focus:outline-none overflow-y-hidden"
+				></textarea>
+				{#if showSuggestions && suggestions.length > 0}
+					<ul
+						class="absolute left-0 z-50 mt-1 w-full rounded-card border border-[var(--color-surface-border)] bg-[var(--color-surface-card)] py-1 shadow-lg max-h-60 overflow-y-auto"
+					>
+						{#each suggestions as sug}
+							<li>
+								<button
+									type="button"
+									onclick={() => {
+										searchQuery = sug;
+										showSuggestions = false;
+										submitWebSearch();
+									}}
+									class="w-full px-4 py-2 text-left text-sm text-[var(--color-nav-active)] hover:bg-[var(--color-surface-muted)] transition-colors"
+								>
+									{sug}
+								</button>
+							</li>
+						{/each}
+					</ul>
+				{/if}
+			</div>
 			<Button variant="primary" size="md" disabled={!searchQuery.trim()} aria-label="Web検索">
 				<Search size={18} />
 			</Button>
@@ -314,7 +490,8 @@
 							href={linkHref(link.url, link.forceExternal)}
 							target={linkTarget(link.forceExternal)}
 							rel={linkRel(link.forceExternal)}
-							class="flex h-full flex-col items-center justify-center rounded-2xl border border-[var(--color-surface-border)] bg-[var(--color-surface-card)] p-3 text-center transition-all hover:bg-[var(--color-surface-muted)] active:scale-[0.98]"
+							onclick={(e) => handleLinkClick(e, link.url, link.forceExternal)}
+							class="flex h-full flex-col items-center justify-center rounded-card border border-[var(--color-surface-border)] bg-[var(--color-surface-card)] p-3 text-center transition-all hover:bg-[var(--color-surface-muted)] active:scale-[0.98]"
 						>
 							<span
 								class="mb-2 flex h-11 w-11 items-center justify-center rounded-full bg-[var(--color-primary-50)] text-[var(--color-primary-800)]"
@@ -343,7 +520,8 @@
 							href={linkHref(link.url)}
 							target={linkTarget()}
 							rel={linkRel()}
-							class="flex h-full flex-col items-center justify-center rounded-2xl border border-[var(--color-surface-border)] bg-[var(--color-surface-card)] p-3 text-center transition-all hover:bg-[var(--color-surface-muted)] active:scale-[0.98]"
+							onclick={(e) => handleLinkClick(e, link.url)}
+							class="flex h-full flex-col items-center justify-center rounded-card border border-[var(--color-surface-border)] bg-[var(--color-surface-card)] p-3 text-center transition-all hover:bg-[var(--color-surface-muted)] active:scale-[0.98]"
 						>
 							<span
 								class="mb-2 flex h-11 w-11 items-center justify-center rounded-full bg-[var(--color-primary-50)] text-[var(--color-primary-800)]"
@@ -366,20 +544,22 @@
 						</button>
 					</div>
 				{/each}
-				<button
-					type="button"
-					onclick={openAddLink}
-					class="flex aspect-square flex-col items-center justify-center rounded-2xl border border-dashed border-[var(--color-surface-border)] bg-[var(--color-surface-card)] p-3 text-center transition-all hover:bg-[var(--color-surface-muted)] active:scale-[0.98]"
-				>
-					<span
-						class="mb-2 flex h-11 w-11 items-center justify-center rounded-full bg-[var(--color-primary-50)] text-[var(--color-primary-800)]"
+				<div class="relative aspect-square">
+					<button
+						type="button"
+						onclick={openAddLink}
+						class="flex h-full w-full flex-col items-center justify-center rounded-card border border-dashed border-[var(--color-surface-border)] bg-[var(--color-surface-card)] p-3 text-center transition-all hover:bg-[var(--color-surface-muted)] active:scale-[0.98]"
 					>
-						<Plus size={22} />
-					</span>
-					<span class="text-[11px] font-bold tracking-tight text-[var(--color-nav-active)]">
-						リンク追加
-					</span>
-				</button>
+						<span
+							class="mb-2 flex h-11 w-11 items-center justify-center rounded-full bg-[var(--color-primary-50)] text-[var(--color-primary-800)]"
+						>
+							<Plus size={22} />
+						</span>
+						<span class="text-[11px] font-bold tracking-tight text-[var(--color-nav-active)]">
+							リンク追加
+						</span>
+					</button>
+				</div>
 			</div>
 			<!-- eslint-enable svelte/no-navigation-without-resolve -->
 
@@ -388,14 +568,11 @@
 			<div class="grid grid-cols-2 gap-3">
 				<!-- 学修要覧 -->
 				<a
-					href={settings.openLinksInApp
-						? resolve(
-								`/inapp-browser?url=${encodeURIComponent('https://kyoumu.office.uec.ac.jp/youran/youran.html')}`
-							)
-						: 'https://kyoumu.office.uec.ac.jp/youran/youran.html'}
-					target={settings.openLinksInApp ? undefined : '_blank'}
-					rel={settings.openLinksInApp ? undefined : 'noopener noreferrer'}
-					class="flex items-center justify-between rounded-xl border border-[var(--color-surface-border)] bg-[var(--color-surface-card)] px-4 py-3.5 transition-all hover:bg-[var(--color-surface-muted)] active:scale-[0.98]"
+					href="https://kyoumu.office.uec.ac.jp/youran/youran.html"
+					target="_blank"
+					rel="noopener noreferrer"
+					onclick={(e) => handleLinkClick(e, 'https://kyoumu.office.uec.ac.jp/youran/youran.html')}
+					class="flex items-center justify-between rounded-card border border-[var(--color-surface-border)] bg-[var(--color-surface-card)] px-4 py-3.5 transition-all hover:bg-[var(--color-surface-muted)] active:scale-[0.98]"
 				>
 					<span class="flex items-center gap-2 text-sm font-bold text-[var(--color-nav-active)]">
 						<Book size={18} class="text-[var(--color-primary-700)]" />
@@ -406,10 +583,12 @@
 
 				<!-- 時間割 -->
 				<a
-					href={linkHref('http://kyoumu.office.uec.ac.jp/timet/index.html', true)}
+					href="http://kyoumu.office.uec.ac.jp/timet/index.html"
 					target="_blank"
 					rel="noopener noreferrer"
-					class="flex items-center justify-between rounded-xl border border-[var(--color-surface-border)] bg-[var(--color-surface-card)] px-4 py-3.5 transition-all hover:bg-[var(--color-surface-muted)] active:scale-[0.98]"
+					onclick={(e) =>
+						handleLinkClick(e, 'http://kyoumu.office.uec.ac.jp/timet/index.html', true)}
+					class="flex items-center justify-between rounded-card border border-[var(--color-surface-border)] bg-[var(--color-surface-card)] px-4 py-3.5 transition-all hover:bg-[var(--color-surface-muted)] active:scale-[0.98]"
 				>
 					<span class="flex items-center gap-2 text-sm font-bold text-[var(--color-nav-active)]">
 						<Calendar size={18} class="text-[var(--color-primary-700)]" />
@@ -428,7 +607,7 @@
 				<!-- 写真 -> PDF 変換 -->
 				<a
 					href={resolve('/pdf')}
-					class="flex items-center gap-3 rounded-xl border border-[var(--color-surface-border)] bg-[var(--color-surface-card)] p-3 transition-all hover:bg-[var(--color-surface-muted)] active:scale-[0.99] text-left"
+					class="flex items-center gap-3 rounded-card border border-[var(--color-surface-border)] bg-[var(--color-surface-card)] p-3 transition-all hover:bg-[var(--color-surface-muted)] active:scale-[0.99] text-left"
 				>
 					<div
 						class="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-[var(--color-primary-50)] text-[var(--color-primary-800)]"
@@ -447,7 +626,7 @@
 				<!-- GPA 計算機 -->
 				<a
 					href={resolve('/gpa')}
-					class="flex items-center gap-3 rounded-xl border border-[var(--color-surface-border)] bg-[var(--color-surface-card)] p-3 text-left transition-all hover:bg-[var(--color-surface-muted)] active:scale-[0.99]"
+					class="flex items-center gap-3 rounded-card border border-[var(--color-surface-border)] bg-[var(--color-surface-card)] p-3 text-left transition-all hover:bg-[var(--color-surface-muted)] active:scale-[0.99]"
 				>
 					<div
 						class="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-[var(--color-primary-50)] text-[var(--color-primary-800)]"

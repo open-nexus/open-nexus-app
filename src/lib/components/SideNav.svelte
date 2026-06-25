@@ -45,7 +45,7 @@
 		<button
 			type="button"
 			onclick={ontoggle}
-			class="flex h-9 w-9 items-center justify-center rounded-lg text-[var(--color-nav-inactive)] transition-colors hover:bg-[var(--color-surface-muted)] hover:text-[var(--color-nav-active)]"
+			class="flex h-9 w-9 items-center justify-center rounded-chip text-[var(--color-nav-inactive)] transition-colors hover:bg-[var(--color-surface-muted)] hover:text-[var(--color-nav-active)]"
 			aria-label={collapsed ? 'サイドバーを展開' : 'サイドバーをたたむ'}
 		>
 			{#if collapsed}
@@ -63,7 +63,7 @@
 				<li>
 					<a
 						href={resolve(item.href)}
-						class="flex items-center rounded-lg py-2 text-sm font-medium transition-colors"
+						class="flex items-center rounded-chip py-2 text-sm font-medium transition-colors"
 						class:justify-center={collapsed}
 						class:gap-3={!collapsed}
 						class:px-3={!collapsed}

@@ -5,8 +5,11 @@
 	import Container from '$lib/components/Container.svelte';
 	import IconButton from '$lib/components/IconButton.svelte';
 	import Button from '$lib/components/Button.svelte';
+	import { DocumentScanner } from '@capgo/capacitor-document-scanner';
+	import { Capacitor } from '@capacitor/core';
 
 	let fileInput: HTMLInputElement;
+	let cameraInput: HTMLInputElement;
 	let images = $state<{ name: string; url: string }[]>([]);
 	let filename = $state('');
 	let pageSize = $state<'a4' | 'original'>('a4');
@@ -20,6 +23,52 @@
 
 	function triggerSelectFiles() {
 		fileInput.click();
+	}
+
+	async function startScan() {
+		if (Capacitor.isNativePlatform()) {
+			try {
+				const { scannedImages, status } = await DocumentScanner.scanDocument();
+				if (status === 'success' && scannedImages && scannedImages.length > 0) {
+					error = '';
+					if (images.length + scannedImages.length > 30) {
+						error = '画像は最大30枚まで選択できます。';
+						return;
+					}
+
+					for (const path of scannedImages) {
+						try {
+							const dataUrl = await convertFileToDataUrl(path);
+							images = [...images, { name: `scan_${Date.now()}.jpg`, url: dataUrl }];
+						} catch (err) {
+							console.error('Failed to convert scanned image to data URL:', err);
+							error = 'スキャン画像の読み込みに失敗しました。';
+						}
+					}
+				}
+			} catch (e) {
+				console.error('Document scanning failed:', e);
+				error = 'ドキュメントスキャンに失敗しました。';
+			}
+		} else {
+			if (cameraInput) {
+				cameraInput.click();
+			}
+		}
+	}
+
+	async function convertFileToDataUrl(filePath: string): Promise<string> {
+		const webPath = Capacitor.convertFileSrc(filePath);
+		const response = await fetch(webPath);
+		const blob = await response.blob();
+		return new Promise((resolve, reject) => {
+			const reader = new FileReader();
+			reader.onerror = reject;
+			reader.onload = () => {
+				resolve(reader.result as string);
+			};
+			reader.readAsDataURL(blob);
+		});
 	}
 
 	function handleFileChange(e: Event) {
@@ -108,6 +157,15 @@
 			class="hidden"
 		/>
 
+		<input
+			type="file"
+			accept="image/*"
+			capture="environment"
+			bind:this={cameraInput}
+			onchange={handleFileChange}
+			class="hidden"
+		/>
+
 		<!-- 画像追加エリア -->
 		<div
 			class="rounded-[var(--radius-card)] border border-[var(--color-surface-border)] bg-[var(--color-surface-card)] p-5 space-y-5"
@@ -128,7 +186,7 @@
 				<!-- スキャン風（実際はカメラ起動またはファイル選択） -->
 				<button
 					type="button"
-					onclick={triggerSelectFiles}
+					onclick={startScan}
 					class="flex flex-col items-center justify-center gap-1 rounded-xl bg-[var(--color-primary-800)] py-3.5 text-white transition-all hover:bg-[var(--color-primary-900)]"
 				>
 					<span class="flex items-center gap-1.5 text-sm font-bold">

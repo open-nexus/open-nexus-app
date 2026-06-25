@@ -19,17 +19,12 @@
 	} from '$lib/types/public';
 	import EmptyState from './EmptyState.svelte';
 	import Sheet from './Sheet.svelte';
-	import InAppBrowser from './inapp-browser/InAppBrowser.svelte';
+	import { openLink } from '$lib/browser';
 	import { LayoutGrid, ExternalLink, ChevronRight } from '@lucide/svelte';
 
 	// --- Card HTML content cache (for html-internal) ---
 	const htmlCache = $state<Record<string, string>>({});
 	const htmlLoading = $state<Record<string, boolean>>({});
-
-	// --- InAppBrowser state ---
-	let browserOpen = $state(false);
-	let browserUrl = $state('');
-	let browserTitle = $state('');
 
 	// --- Sheet (webview-popup) state ---
 	let sheetOpen = $state(false);
@@ -74,13 +69,7 @@
 	}
 
 	function openExternalUrl(card: ExternalUrlCard) {
-		if (card.openInApp && settings.openLinksInApp) {
-			browserUrl = card.url;
-			browserTitle = card.title;
-			browserOpen = true;
-		} else {
-			window.open(card.url, '_blank', 'noopener,noreferrer');
-		}
+		void openLink(card.url, card.openInApp && settings.openLinksInApp);
 	}
 
 	async function openWebviewPopup(card: WebviewPopupCard) {
@@ -166,14 +155,6 @@
 		{/each}
 	</div>
 {/if}
-
-<!-- InAppBrowser for external-url cards -->
-<InAppBrowser
-	bind:open={browserOpen}
-	url={browserUrl}
-	onclose={() => (browserOpen = false)}
-	title={browserTitle}
-/>
 
 <!-- Sheet for webview-popup cards -->
 <Sheet bind:open={sheetOpen} onclose={() => (sheetOpen = false)} title={sheetTitle}>

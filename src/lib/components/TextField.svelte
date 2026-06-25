@@ -28,11 +28,14 @@
 		trailingIcon?: Component<{ size?: number }>;
 		options?: Option[];
 		rows?: number;
+		autoResize?: boolean;
 		id?: string;
 		name?: string;
 		oninput?: (e: Event) => void;
 		onchange?: (e: Event) => void;
 		onblur?: (e: FocusEvent) => void;
+		onfocus?: (e: FocusEvent) => void;
+		onkeydown?: (e: KeyboardEvent) => void;
 	}
 
 	let {
@@ -50,12 +53,24 @@
 		trailingIcon: Trailing,
 		options = [],
 		rows = 3,
+		autoResize = false,
 		id,
 		name,
 		oninput,
 		onchange,
-		onblur
+		onblur,
+		onfocus,
+		onkeydown
 	}: Props = $props();
+
+	let textareaElement = $state<HTMLTextAreaElement | null>(null);
+
+	$effect(() => {
+		if (autoResize && textareaElement && value !== undefined) {
+			textareaElement.style.height = 'auto';
+			textareaElement.style.height = textareaElement.scrollHeight + 'px';
+		}
+	});
 
 	const fieldId = $derived(id ?? `tf-${Math.random().toString(36).slice(2, 9)}`);
 	const hasError = $derived(!!error);
@@ -87,14 +102,24 @@
 				{disabled}
 				{readonly}
 				{rows}
-				{oninput}
+				oninput={(e) => {
+					if (autoResize) {
+						const target = e.currentTarget;
+						target.style.height = 'auto';
+						target.style.height = target.scrollHeight + 'px';
+					}
+					oninput?.(e);
+				}}
 				{onchange}
 				{onblur}
-				class="block w-full rounded-lg border bg-[var(--color-surface-card)] px-3 py-2 text-sm text-[var(--color-nav-active)] placeholder-[var(--color-nav-inactive)] focus:border-[var(--color-primary-500)] focus:outline-none focus:ring-2 focus:ring-[var(--color-primary-500)]/30 disabled:opacity-50 {Leading
+				onfocus={onfocus as HTMLTextAreaElement['onfocus']}
+				onkeydown={onkeydown as HTMLTextAreaElement['onkeydown']}
+				class="block w-full rounded-chip border bg-[var(--color-surface-card)] px-3 py-2 text-sm text-[var(--color-nav-active)] placeholder-[var(--color-nav-inactive)] focus:border-[var(--color-primary-500)] focus:outline-none focus:ring-2 focus:ring-[var(--color-primary-500)]/30 disabled:opacity-50 {Leading
 					? 'pl-10'
 					: ''} {Trailing ? 'pr-10' : ''} {hasError
 					? 'border-red-500'
-					: 'border-[var(--color-surface-border)]'}"></textarea>
+					: 'border-[var(--color-surface-border)]'} resize-none overflow-y-hidden"
+				bind:this={textareaElement}></textarea>
 		{:else if type === 'select'}
 			<div class="relative w-full">
 				<select
@@ -104,7 +129,7 @@
 					{required}
 					{disabled}
 					{onchange}
-					class="block w-full appearance-none rounded-lg border bg-[var(--color-surface-card)] px-3.5 py-2.5 text-sm text-[var(--color-nav-active)] focus:border-[var(--color-primary-500)] focus:outline-none focus:ring-2 focus:ring-[var(--color-primary-500)]/30 disabled:opacity-50 {Leading
+					class="block w-full appearance-none rounded-chip border bg-[var(--color-surface-card)] px-3.5 py-2.5 text-sm text-[var(--color-nav-active)] focus:border-[var(--color-primary-500)] focus:outline-none focus:ring-2 focus:ring-[var(--color-primary-500)]/30 disabled:opacity-50 {Leading
 						? 'pl-10'
 						: ''} pr-10 {hasError
 						? 'border-red-500'
@@ -137,7 +162,9 @@
 				{oninput}
 				{onchange}
 				{onblur}
-				class="block w-full rounded-lg border bg-[var(--color-surface-card)] px-3 py-2 text-sm text-[var(--color-nav-active)] placeholder-[var(--color-nav-inactive)] focus:border-[var(--color-primary-500)] focus:outline-none focus:ring-2 focus:ring-[var(--color-primary-500)]/30 disabled:opacity-50 {Leading
+				onfocus={onfocus as HTMLInputElement['onfocus']}
+				onkeydown={onkeydown as HTMLInputElement['onkeydown']}
+				class="block w-full rounded-chip border bg-[var(--color-surface-card)] px-3 py-2 text-sm text-[var(--color-nav-active)] placeholder-[var(--color-nav-inactive)] focus:border-[var(--color-primary-500)] focus:outline-none focus:ring-2 focus:ring-[var(--color-primary-500)]/30 disabled:opacity-50 {Leading
 					? 'pl-10'
 					: ''} {Trailing ? 'pr-10' : ''} {hasError
 					? 'border-red-500'

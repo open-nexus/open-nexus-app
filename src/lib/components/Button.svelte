@@ -48,7 +48,7 @@
 	}: Props = $props();
 
 	const baseClass =
-		'inline-flex items-center justify-center gap-2 font-medium rounded-[var(--radius-chip)] transition-colors select-none whitespace-nowrap focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-primary-500)] focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--color-surface-page)] disabled:opacity-50 disabled:cursor-not-allowed disabled:pointer-events-none';
+		'inline-flex items-center justify-center gap-2 font-medium rounded-chip transition-colors select-none whitespace-nowrap focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-primary-500)] focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--color-surface-page)] disabled:opacity-50 disabled:cursor-not-allowed disabled:pointer-events-none';
 
 	const sizeClass = $derived(
 		{

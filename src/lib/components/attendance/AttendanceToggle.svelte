@@ -35,7 +35,7 @@
 </script>
 
 <div
-	class="flex gap-1.5 rounded-[var(--radius-chip)] border border-[var(--color-surface-border)] bg-[var(--color-surface-muted)] p-1.5"
+	class="flex gap-1.5 rounded-chip border border-[var(--color-surface-border)] bg-[var(--color-surface-muted)] p-1.5"
 	role="group"
 	aria-label={m.attendance_status()}
 >
@@ -46,7 +46,7 @@
 		<button
 			type="button"
 			{disabled}
-			class="flex flex-1 flex-col items-center justify-center gap-1 rounded-lg py-2.5 transition-all duration-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-primary-500)]"
+			class="flex flex-1 flex-col items-center justify-center gap-1 rounded-chip py-2.5 transition-all duration-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-primary-500)]"
 			class:bg-transparent={!isActive}
 			class:text-[var(--color-nav-inactive)]={!isActive}
 			class:opacity-50={disabled}

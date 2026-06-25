@@ -121,7 +121,7 @@
 			{#each filterChips as chip (chip.key)}
 				<button
 					type="button"
-					class="shrink-0 rounded-full px-4 py-1.5 text-sm font-medium transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-primary-500)]"
+					class="shrink-0 rounded-pill px-4 py-1.5 text-sm font-medium transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-primary-500)]"
 					class:bg-[var(--color-primary-500)]={filter === chip.key}
 					class:text-white={filter === chip.key}
 					class:bg-[var(--color-surface-muted)]={filter !== chip.key}

@@ -147,7 +147,7 @@
 		<div class="space-y-4">
 			<!-- Course header with accent color -->
 			<div
-				class="rounded-lg p-3"
+				class="rounded-chip p-3"
 				style="border-left: 4px solid {accentColor}; background-color: var(--color-surface-muted);"
 			>
 				<h3 class="text-base font-semibold text-[var(--color-nav-active)]">{course.name}</h3>
@@ -198,7 +198,7 @@
 				<h4 class="text-sm font-semibold text-[var(--color-nav-active)]">{m.nav_attendance()}</h4>
 
 				<!-- 出席統計とリング -->
-				<div class="flex items-center gap-4 bg-[var(--color-surface-muted)] p-3 rounded-lg">
+				<div class="flex items-center gap-4 bg-[var(--color-surface-muted)] p-3 rounded-chip">
 					<ProgressRing value={summary.rate} size={48} strokeWidth={4} color={ringColor}>
 						<div class="flex flex-col items-center leading-none">
 							<span class="text-xs font-bold text-[var(--color-nav-active)]">
@@ -281,7 +281,7 @@
 						<div class="border-t border-[var(--color-surface-border)] pt-3 space-y-3">
 							{#if showPastForm}
 								<div
-									class="p-3 rounded-lg border border-[var(--color-surface-border)] bg-[var(--color-surface-muted)] space-y-3"
+									class="p-3 rounded-chip border border-[var(--color-surface-border)] bg-[var(--color-surface-muted)] space-y-3"
 								>
 									<div class="space-y-1">
 										<label
@@ -292,7 +292,7 @@
 											id="syllabus-past-date"
 											type="date"
 											bind:value={pastDate}
-											class="block w-full rounded-md border border-[var(--color-surface-border)] bg-[var(--color-surface-card)] px-2.5 py-1.5 text-xs text-[var(--color-nav-active)] focus:outline-none"
+											class="block w-full rounded-chip border border-[var(--color-surface-border)] bg-[var(--color-surface-card)] px-2.5 py-1.5 text-xs text-[var(--color-nav-active)] focus:outline-none"
 										/>
 									</div>
 									<div class="space-y-1">

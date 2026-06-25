@@ -97,7 +97,7 @@
 					{@const isDarkTheme = themeStore.pack.id === 'dark'}
 					<!-- 授業カード: 複数時限にまたがる (span) -->
 					<div
-						class="m-0.5 flex min-h-[64px] cursor-pointer flex-col gap-1 rounded-xl p-2.5 transition-all hover:scale-[0.99] active:scale-[0.97]"
+						class="m-0.5 flex min-h-[64px] cursor-pointer flex-col gap-1 rounded-card p-2.5 transition-all hover:scale-[0.99] active:scale-[0.97]"
 						style="background-color: {color}; grid-column: {d + 2}; grid-row: {p +
 							2} / span {course.span};"
 						class:text-white={!isDarkTheme}
@@ -130,7 +130,7 @@
 				{:else if !occupied}
 					<!-- 空セル: タップして追加 -->
 					<div
-						class="m-0.5 flex min-h-[64px] cursor-pointer items-center justify-center rounded-xl border border-dashed transition-all hover:scale-[0.99] active:scale-[0.97] {settingsStore
+						class="m-0.5 flex min-h-[64px] cursor-pointer items-center justify-center rounded-card border border-dashed transition-all hover:scale-[0.99] active:scale-[0.97] {settingsStore
 							.settings.timetableTransparent
 							? 'border-[var(--color-surface-muted)] bg-[var(--color-surface-card)]/40 backdrop-blur-xs hover:bg-[var(--color-surface-muted)]/60'
 							: 'border-[var(--color-surface-border)] bg-[var(--color-surface-card)] hover:bg-[var(--color-surface-muted)]'}"

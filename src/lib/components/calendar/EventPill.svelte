@@ -84,7 +84,7 @@
 {:else}
 	<button
 		type="button"
-		class="flex w-full items-center gap-1.5 overflow-hidden rounded-md px-2 py-1 text-left text-xs leading-tight {cancelled
+		class="flex w-full items-center gap-1.5 overflow-hidden rounded-chip px-2 py-1 text-left text-xs leading-tight {cancelled
 			? 'opacity-60'
 			: ''} {klass}"
 		style="background-color: {cancelled

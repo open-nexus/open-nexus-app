@@ -97,7 +97,7 @@
 </script>
 
 <div
-	class="space-y-4 rounded-[var(--radius-card)] border border-[var(--color-surface-border)] bg-[var(--color-surface-card)] p-4 shadow-[var(--shadow-card)]"
+	class="space-y-4 rounded-card border border-[var(--color-surface-border)] bg-[var(--color-surface-card)] p-4 shadow-[var(--shadow-card)]"
 >
 	<!-- Header: course name + color dot + rate ring -->
 	<div class="flex items-center gap-3">
@@ -141,7 +141,7 @@
 
 	<!-- Remaining absences -->
 	<div
-		class="flex items-center justify-between rounded-lg bg-[var(--color-surface-muted)] px-3 py-2"
+		class="flex items-center justify-between rounded-chip bg-[var(--color-surface-muted)] px-3 py-2"
 	>
 		<span class="text-xs text-[var(--color-surface-muted-foreground)]"
 			>{m.attendance_remaining()}</span
@@ -204,7 +204,7 @@
 			<div class="border-t border-[var(--color-surface-border)] pt-3 space-y-3">
 				{#if showPastForm}
 					<div
-						class="p-3 rounded-lg border border-[var(--color-surface-border)] bg-[var(--color-surface-muted)] space-y-3"
+						class="p-3 rounded-chip border border-[var(--color-surface-border)] bg-[var(--color-surface-muted)] space-y-3"
 					>
 						<div class="space-y-1">
 							<label
@@ -217,7 +217,7 @@
 								id="past-date-{course.id}"
 								type="date"
 								bind:value={pastDate}
-								class="block w-full rounded-md border border-[var(--color-surface-border)] bg-[var(--color-surface-card)] px-2.5 py-1.5 text-xs text-[var(--color-nav-active)] focus:outline-none"
+								class="block w-full rounded-chip border border-[var(--color-surface-border)] bg-[var(--color-surface-card)] px-2.5 py-1.5 text-xs text-[var(--color-nav-active)] focus:outline-none"
 							/>
 						</div>
 						<div class="space-y-1">

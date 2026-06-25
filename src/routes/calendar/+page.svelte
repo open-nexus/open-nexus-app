@@ -426,7 +426,7 @@
 		/>
 		<button
 			type="button"
-			class="rounded-full px-3 py-1 text-xs font-semibold text-[var(--color-primary-700)] hover:bg-[var(--color-surface-muted)]"
+			class="rounded-pill px-3 py-1 text-xs font-semibold text-[var(--color-primary-700)] hover:bg-[var(--color-surface-muted)]"
 			onclick={goToday}
 		>
 			{m.calendar_today()}
@@ -441,7 +441,7 @@
 		{#each viewTabs as tab (tab.mode)}
 			<button
 				type="button"
-				class="rounded-full px-4 py-1.5 text-sm font-medium transition-colors
+				class="rounded-pill px-4 py-1.5 text-sm font-medium transition-colors
 				{viewMode === tab.mode
 					? 'bg-[var(--color-primary-500)] text-white'
 					: 'text-[var(--color-nav-inactive)] hover:bg-[var(--color-surface-muted)]'}"

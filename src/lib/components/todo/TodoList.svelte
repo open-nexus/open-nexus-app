@@ -105,7 +105,7 @@
 	/>
 {:else}
 	<div
-		class="overflow-hidden rounded-xl border border-[var(--color-surface-border)] bg-[var(--color-surface-card)]"
+		class="overflow-hidden rounded-card border border-[var(--color-surface-border)] bg-[var(--color-surface-card)]"
 	>
 		{#each sortedTodos as todo (todo.id)}
 			<TodoItem

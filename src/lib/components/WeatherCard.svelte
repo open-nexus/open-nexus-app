@@ -37,15 +37,15 @@
 		const month = d.getMonth() + 1;
 		const date = d.getDate();
 		const dayOfWeek = ['日', '月', '火', '水', '木', '金', '土'][d.getDay()];
-		return `${month}/${date} ${dayOfWeek}曜日`;
+		return `${month}/${date} (${dayOfWeek})`;
 	});
 
 	const todayHours = $derived(forecast?.hours ?? []);
 	const maxTemp = $derived(
-		todayHours.length ? Math.round(Math.max(...todayHours.map((h) => h.temperature))) : 0
+		todayHours.length ? Math.max(...todayHours.map((h) => h.temperature)) : 0
 	);
 	const minTemp = $derived(
-		todayHours.length ? Math.round(Math.min(...todayHours.map((h) => h.temperature))) : 0
+		todayHours.length ? Math.min(...todayHours.map((h) => h.temperature)) : 0
 	);
 	const currentPrecip = $derived(todayHours.length ? todayHours[0].precipitationProbability : 0);
 
@@ -77,6 +77,44 @@
 		return points;
 	});
 
+	// 現在時刻の更新タイマー
+	let currentTime = $state(new Date());
+
+	$effect(() => {
+		const interval = setInterval(() => {
+			currentTime = new Date();
+		}, 1000);
+		return () => clearInterval(interval);
+	});
+
+	// 温度表示の変換ヘルパー
+	function getTempDisplay(celsius: number): { value: number; unit: string } {
+		if (settings.weatherTempUnit === 'fahrenheit') {
+			return { value: Math.round(celsius * 1.8 + 32), unit: '°F' };
+		}
+		return { value: Math.round(celsius), unit: '°C' };
+	}
+
+	// 時刻フォーマットヘルパー
+	function formatTime(date: Date | number | null | undefined): string {
+		if (!date) return '';
+		const d = typeof date === 'number' ? new Date(date) : date;
+		const is12h = settings.timeFormat === '12h';
+		const showSeconds = settings.weatherTimeFormat === 'second';
+
+		const options: Intl.DateTimeFormatOptions = {
+			hour: 'numeric',
+			minute: '2-digit',
+			hour12: is12h
+		};
+		if (showSeconds) {
+			options.second = '2-digit';
+		}
+
+		const loc = settings.locale || 'ja';
+		return new Intl.DateTimeFormat(loc, options).format(d);
+	}
+
 	$effect(() => {
 		const lat = settingsStore.settings.lat;
 		const lng = settingsStore.settings.lng;
@@ -84,10 +122,18 @@
 			void weatherStore.load(lat, lng);
 		}
 	});
+
+	const weatherUrl = $derived(
+		'https://www.google.com/search?q=' +
+			encodeURIComponent((settings.locationName || '調布') + ' 天気')
+	);
 </script>
 
-<div
-	class="overflow-hidden rounded-[var(--radius-card)] border border-[var(--color-surface-border)] bg-[var(--color-surface-card)] px-4 py-3.5"
+<a
+	href={weatherUrl}
+	target="_blank"
+	rel="noopener noreferrer"
+	class="block overflow-hidden rounded-[var(--radius-card)] border border-[var(--color-surface-border)] bg-[var(--color-surface-card)] px-4 py-3.5"
 >
 	{#if loading && !weather}
 		<!-- Loading skeleton -->
@@ -111,10 +157,15 @@
 		<div class="flex flex-col gap-3">
 			<div class="flex items-start justify-between">
 				<div class="flex flex-col">
-					<span class="text-2xl font-bold tracking-tight text-[var(--color-nav-active)]">
-						{todayStr}
-					</span>
-					<span class="text-xs text-[var(--color-nav-inactive)] mt-0.5">
+					<div class="flex items-baseline gap-2 flex-wrap">
+						<span class="text-2xl font-bold tracking-tight text-[var(--color-nav-active)]">
+							{todayStr}
+						</span>
+						<span class="text-2xl font-bold tracking-tight text-[var(--color-nav-active)]">
+							{formatTime(currentTime)}
+						</span>
+					</div>
+					<span class="text-[10px] text-[var(--color-nav-inactive)] mt-1">
 						{#if settings.locationName}
 							<span class="inline-flex items-center gap-0.5">
 								<MapPin size={11} />
@@ -128,9 +179,11 @@
 					<div class="flex flex-col items-end">
 						<div class="flex items-baseline gap-0.5">
 							<span class="text-3xl font-bold leading-none text-[var(--color-nav-active)]">
-								{Math.round(weather.temperature)}
+								{getTempDisplay(weather.temperature).value}
 							</span>
-							<span class="text-sm font-medium text-[var(--color-nav-inactive)]">°C</span>
+							<span class="text-sm font-medium text-[var(--color-nav-inactive)]">
+								{getTempDisplay(weather.temperature).unit}
+							</span>
 						</div>
 						<span class="text-[10px] font-semibold text-[var(--color-nav-inactive)] mt-0.5">
 							{weatherLabels[labelKey] ?? weatherLabels.weather_unknown}
@@ -140,12 +193,23 @@
 			</div>
 
 			<!-- Extra details aligned horizontally in mock -->
-			<div class="flex items-center gap-4 text-xs font-semibold">
-				<span class="text-red-500">↑ {maxTemp}°C</span>
-				<span class="text-blue-500">↓ {minTemp}°C</span>
-				<span class="inline-flex items-center gap-1 text-sky-500"
-					><Emoji emoji="💧" /> {currentPrecip}%</span
-				>
+			<div class="flex items-center justify-between text-xs font-semibold">
+				<div class="flex items-center gap-4">
+					<span class="text-red-500"
+						>↑ {getTempDisplay(maxTemp).value}{getTempDisplay(maxTemp).unit}</span
+					>
+					<span class="text-blue-500"
+						>↓ {getTempDisplay(minTemp).value}{getTempDisplay(minTemp).unit}</span
+					>
+					<span class="inline-flex items-center gap-1 text-sky-500"
+						><Emoji emoji="💧" /> {currentPrecip}%</span
+					>
+				</div>
+				{#if weatherStore.lastUpdated}
+					<span class="text-[10px] font-normal text-[var(--color-nav-inactive)]">
+						{m.weather_last_updated({ time: formatTime(weatherStore.lastUpdated) })}
+					</span>
+				{/if}
 			</div>
 
 			{#if forecastPoints.length > 0}
@@ -177,4 +241,4 @@
 			</div>
 		</div>
 	{/if}
-</div>
+</a>

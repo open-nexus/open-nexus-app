@@ -76,7 +76,7 @@
 
 		<div
 			class="relative z-10 flex w-full max-h-[90vh] flex-col bg-[var(--color-surface-card)] shadow-[var(--shadow-sheet)] md:max-h-full md:max-w-md md:h-full"
-			class:rounded-t-2xl={position === 'bottom'}
+			class:rounded-t-card={position === 'bottom'}
 			transition:fly={{
 				y: position === 'bottom' ? 1000 : 0,
 				x: position === 'right' ? 1000 : 0,

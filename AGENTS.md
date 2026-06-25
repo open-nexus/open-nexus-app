@@ -103,7 +103,7 @@ type DashboardCard =
 - `src/lib/publicData.ts` — 公開データ取得 + IndexedDB キャッシュ
 - `src/lib/attendance.ts` — 出席率計算（休講除外）
 - `src/lib/html-renderer.ts` — DOMPurify ラッパー
-- `src/lib/components/inapp-browser/` — アプリ内ブラウザ
+- `src/lib/browser.ts` — ブラウザ起動ユーティリティ（Capacitor ネイティブ / Web 共通）
 - `vite.config.ts` — SvelteKit設定・アダプター
 - `capacitor.config.ts`
 
@@ -118,3 +118,15 @@ type DashboardCard =
 - `pnpm run storybook` — Storybook
 - `pnpm run build` — プロダクションビルド
 - `pnpm exec cap sync` — Capacitor 同期
+
+## 📝 変更履歴（CHANGELOG）
+
+- ルートの [`CHANGELOG.md`](./CHANGELOG.md) を **Keep a Changelog** 形式で管理する
+- **コミット単位ではなく、作業セッション（日付）単位**でまとめて記録する
+- コミットメッセージは **`YYYY-MM-DD`** 形式の日付のみ（例: `2026-06-25`）
+- 変更は以下のカテゴリに分類して記述する:
+  - `Added` — 新機能・新ファイルの追加
+  - `Changed` — 既存機能の変更・修正・リファクタリング
+  - `Removed` — 削除されたファイル・機能
+  - `Fixed` — バグ修正（`Changed` と分けたい場合）
+- AIエージェントがコミット前に CHANGELOG.md を更新してからコミットすること

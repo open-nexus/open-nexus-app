@@ -153,7 +153,7 @@
 		<div class="space-y-4 text-sm text-[var(--color-nav-active)]">
 			<!-- カラーバーとタイトル -->
 			<div
-				class="flex items-center gap-3 p-3 rounded-lg bg-[var(--color-surface-muted)]"
+				class="flex items-center gap-3 p-3 rounded-chip bg-[var(--color-surface-muted)]"
 				style="border-left: 4px solid {resolveColorHex(pack, color)}"
 			>
 				<h3 class="text-base font-bold">{title}</h3>
@@ -230,14 +230,14 @@
 						type="date"
 						bind:value={startDate}
 						aria-label={m.calendar_start()}
-						class="block flex-1 rounded-lg border border-[var(--color-surface-border)] bg-[var(--color-surface-card)] px-3 py-2 text-sm text-[var(--color-nav-active)] focus:border-[var(--color-primary-500)] focus:outline-none focus:ring-2 focus:ring-[var(--color-primary-500)]/30"
+						class="block flex-1 rounded-chip border border-[var(--color-surface-border)] bg-[var(--color-surface-card)] px-3 py-2 text-sm text-[var(--color-nav-active)] focus:border-[var(--color-primary-500)] focus:outline-none focus:ring-2 focus:ring-[var(--color-primary-500)]/30"
 					/>
 					{#if !allDay}
 						<input
 							type="time"
 							bind:value={startTime}
 							aria-label={m.calendar_start()}
-							class="block w-28 rounded-lg border border-[var(--color-surface-border)] bg-[var(--color-surface-card)] px-3 py-2 text-sm text-[var(--color-nav-active)] focus:border-[var(--color-primary-500)] focus:outline-none focus:ring-2 focus:ring-[var(--color-primary-500)]/30"
+							class="block w-28 rounded-chip border border-[var(--color-surface-border)] bg-[var(--color-surface-card)] px-3 py-2 text-sm text-[var(--color-nav-active)] focus:border-[var(--color-primary-500)] focus:outline-none focus:ring-2 focus:ring-[var(--color-primary-500)]/30"
 						/>
 					{/if}
 				</div>
@@ -253,14 +253,14 @@
 						type="date"
 						bind:value={endDate}
 						aria-label={m.calendar_end()}
-						class="block flex-1 rounded-lg border border-[var(--color-surface-border)] bg-[var(--color-surface-card)] px-3 py-2 text-sm text-[var(--color-nav-active)] focus:border-[var(--color-primary-500)] focus:outline-none focus:ring-2 focus:ring-[var(--color-primary-500)]/30"
+						class="block flex-1 rounded-chip border border-[var(--color-surface-border)] bg-[var(--color-surface-card)] px-3 py-2 text-sm text-[var(--color-nav-active)] focus:border-[var(--color-primary-500)] focus:outline-none focus:ring-2 focus:ring-[var(--color-primary-500)]/30"
 					/>
 					{#if !allDay}
 						<input
 							type="time"
 							bind:value={endTime}
 							aria-label={m.calendar_end()}
-							class="block w-28 rounded-lg border border-[var(--color-surface-border)] bg-[var(--color-surface-card)] px-3 py-2 text-sm text-[var(--color-nav-active)] focus:border-[var(--color-primary-500)] focus:outline-none focus:ring-2 focus:ring-[var(--color-primary-500)]/30"
+							class="block w-28 rounded-chip border border-[var(--color-surface-border)] bg-[var(--color-surface-card)] px-3 py-2 text-sm text-[var(--color-nav-active)] focus:border-[var(--color-primary-500)] focus:outline-none focus:ring-2 focus:ring-[var(--color-primary-500)]/30"
 						/>
 					{/if}
 				</div>

@@ -75,7 +75,7 @@
 
 		<!-- dialog -->
 		<div
-			class="relative z-10 flex max-h-[90vh] w-full flex-col overflow-hidden rounded-2xl bg-[var(--color-surface-card)] shadow-[var(--shadow-modal)]"
+			class="relative z-10 flex max-h-[90vh] w-full flex-col overflow-hidden rounded-card bg-[var(--color-surface-card)] shadow-[var(--shadow-modal)]"
 			style="max-width: {maxWidth}"
 			transition:scale={{ duration: 200, start: 0.95 }}
 		>

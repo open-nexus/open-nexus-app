@@ -3,16 +3,13 @@
 	import ListItem from '$lib/components/ListItem.svelte';
 	import SectionHeader from '$lib/components/SectionHeader.svelte';
 	import Container from '$lib/components/Container.svelte';
-	import EmptyState from '$lib/components/EmptyState.svelte';
 	import Button from '$lib/components/Button.svelte';
 	import Modal from '$lib/components/Modal.svelte';
-	import DashboardCardItem from '$lib/components/dashboard/DashboardCardItem.svelte';
+	import CustomFeatureEditor from '$lib/components/CustomFeatureEditor.svelte';
 	import IconButton from '$lib/components/IconButton.svelte';
 	import { m } from '$lib/paraglide/messages';
-	import { settingsStore, userDataStore, publicDataStore, uiStore } from '$lib/stores';
+	import { settingsStore, userDataStore, uiStore } from '$lib/stores';
 	import { getConnectedUserAddress } from '$lib/remotestorage';
-	import type { DashboardCard } from '$lib/types/public';
-	import { SvelteSet, SvelteMap } from 'svelte/reactivity';
 	import {
 		Palette,
 		Languages,
@@ -23,10 +20,7 @@
 		Link2,
 		ShieldCheck,
 		Info,
-		AlertTriangle,
 		Cloud,
-		LayoutGrid,
-		Loader2,
 		Sun,
 		Moon,
 		Laptop
@@ -81,24 +75,6 @@
 		showClearConfirm = false;
 		uiStore.toast('データを削除しました', 'success');
 	}
-
-	// 公開データのカードを order 順 + 非表示フィルタ
-	const visibleCards = $derived.by<DashboardCard[]>(() => {
-		const hidden = new SvelteSet(settingsStore.settings.hiddenDashboardCards);
-		const orderMap = new SvelteMap<string, number>();
-		settingsStore.settings.dashboardCardOrder.forEach((id, i) => orderMap.set(id, i));
-
-		return (publicDataStore.data?.dashboardCards ?? [])
-			.filter((c) => !hidden.has(c.id))
-			.sort((a, b) => {
-				const oa = orderMap.get(a.id);
-				const ob = orderMap.get(b.id);
-				if (oa != null && ob != null) return oa - ob;
-				if (oa != null) return -1;
-				if (ob != null) return 1;
-				return a.order - b.order;
-			});
-	});
 
 	function toggleTheme() {
 		const current = settingsStore.settings.theme;
@@ -182,41 +158,18 @@
 		/>
 	{/if}
 
-	<!-- ダッシュボードカードグリッド -->
+	<!-- カスタム機能 (Markdown + KaTeX + Mermaid エディタ) -->
 	<SectionHeader>{m.settings_dashboard()}</SectionHeader>
-	{#if publicDataStore.loading && !publicDataStore.data}
-		<div
-			class="flex items-center justify-center gap-2 py-8 text-sm text-[var(--color-nav-inactive)]"
-		>
-			<Loader2 size={20} class="animate-spin" />
-			{m.inapp_browser_loading()}
-		</div>
-	{:else if publicDataStore.error && !publicDataStore.data}
-		<EmptyState
-			icon={AlertTriangle}
-			message={m.inapp_browser_error()}
-			actionLabel={m.inapp_browser_retry()}
-			onAction={() => publicDataStore.load()}
-			class="py-8"
-		/>
-	{:else if visibleCards.length === 0}
-		<EmptyState icon={LayoutGrid} message={m.empty_no_data()} class="py-8" />
-	{:else}
-		<div class="grid grid-cols-1 gap-3 md:grid-cols-2">
-			{#each visibleCards as card (card.id)}
-				<DashboardCardItem {card} />
-			{/each}
-		</div>
-	{/if}
+	<CustomFeatureEditor />
 
 	<!-- データ管理 -->
 	<SectionHeader>{m.settings_data()}</SectionHeader>
 	<div
-		class="rounded-xl border border-[var(--color-surface-border)] bg-[var(--color-surface-card)] p-4"
+		class="rounded-card border border-[var(--color-surface-border)] bg-[var(--color-surface-card)] p-4"
 	>
 		<div class="mb-3 flex items-center gap-3">
 			<span
-				class="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg"
+				class="flex h-9 w-9 shrink-0 items-center justify-center rounded-chip"
 				style="background-color: var(--color-primary-500)1A; color: var(--color-primary-500)"
 			>
 				<Database size={18} />
@@ -232,7 +185,7 @@
 				{m.settings_data_export()}
 			</Button>
 			<label
-				class="inline-flex h-8 cursor-pointer items-center justify-center gap-2 rounded-[var(--radius-chip)] border border-[var(--color-surface-border)] bg-[var(--color-surface-card)] px-3 text-sm font-medium text-[var(--color-nav-active)] transition-colors hover:bg-[var(--color-surface-muted)]"
+				class="inline-flex h-8 cursor-pointer items-center justify-center gap-2 rounded-chip border border-[var(--color-surface-border)] bg-[var(--color-surface-card)] px-3 text-sm font-medium text-[var(--color-nav-active)] transition-colors hover:bg-[var(--color-surface-muted)]"
 			>
 				<Upload size={16} />
 				{m.settings_data_import()}

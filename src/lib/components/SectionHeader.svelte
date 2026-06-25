@@ -14,7 +14,7 @@
 </script>
 
 <div
-	class="my-3 block w-full rounded-[var(--radius-chip)] px-4 py-2 text-xs font-bold tracking-widest uppercase transition-colors"
+	class="my-3 block w-full rounded-chip px-4 py-2 text-xs font-bold tracking-widest uppercase transition-colors"
 	class:bg-[var(--color-primary-500)]={variant === 'default'}
 	class:text-white={variant === 'default'}
 	class:bg-[var(--color-surface-muted)]={variant === 'light'}
