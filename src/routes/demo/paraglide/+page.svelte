@@ -12,7 +12,7 @@
 	const current = $derived(getLocale());
 </script>
 
-<svelte:head><title>Paraglide Demo | open-nexus</title></svelte:head>
+<svelte:head><title>Paraglide Demo | OpenYASKE</title></svelte:head>
 
 <div class="space-y-6 p-4">
 	<header>

@@ -1,6 +1,6 @@
 {
-	"name": "open-nexus",
-	"short_name": "open-nexus",
+	"name": "OpenYASKE",
+	"short_name": "OpenYASKE",
 	"description": "Local-first timetable and student life planner",
 	"start_url": "/",
 	"scope": "/",

@@ -8,8 +8,8 @@ import { applyTheme, BUILTIN_PACKS, getBuiltinPack } from '$lib/theme';
 import type { ThemePack } from '$lib/theme';
 import * as remoteStorage from '$lib/remotestorage';
 
-const STORAGE_KEY = 'open-nexus:active-theme';
-const CUSTOM_PACKS_KEY = 'open-nexus:custom-packs';
+const STORAGE_KEY = 'open-yaske:active-theme';
+const CUSTOM_PACKS_KEY = 'open-yaske:custom-packs';
 
 class ThemeStore {
 	pack = $state<ThemePack>(BUILTIN_PACKS[0]);

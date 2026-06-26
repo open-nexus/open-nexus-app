@@ -1,12 +1,12 @@
 # ARCHITECTURE.md
 
-> open-nexus システムアーキテクチャ
+> OpenYASKE システムアーキテクチャ
 
 最終更新: 2026-06-22
 
 ## 全体像
 
-時間割アプリ「open-nexus」。Web + モバイル（Android/iOS）対応の **Local-First** アプリケーション。
+時間割アプリ「OpenYASKE」。Web + モバイル（Android/iOS）対応の **Local-First** アプリケーション。
 
 ### コアコンセプト
 

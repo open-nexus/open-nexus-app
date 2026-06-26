@@ -53,7 +53,7 @@
 	}
 </script>
 
-<svelte:head><title>GPA 計算機 | open-nexus</title></svelte:head>
+<svelte:head><title>GPA 計算機 | OpenYASKE</title></svelte:head>
 
 <PageHeader title="GPA 計算機" />
 

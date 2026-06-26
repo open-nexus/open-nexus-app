@@ -137,7 +137,7 @@
 </script>
 
 <svelte:head>
-	<title>写真 → PDF | open-nexus</title>
+	<title>写真 → PDF | OpenYASKE</title>
 </svelte:head>
 
 <div class="min-h-screen bg-[var(--color-surface-page)] pb-10">

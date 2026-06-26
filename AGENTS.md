@@ -2,7 +2,7 @@
 
 ## Project Overview
 
-時間割アプリ「open-nexus」。SvelteKit + CapacitorでWeb/モバイルクロスプラットフォーム。  
+時間割アプリ「OpenYASKE」。SvelteKit + CapacitorでWeb/モバイルクロスプラットフォーム。  
 **コアコンセプト**: Local-First + Offline-First + AIフレンドリーな公開データ。
 
 - **公開データ**: GitHub上のMarkdown（科目情報）→ CI/CDでJSON生成 → CDN配信

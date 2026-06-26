@@ -1,7 +1,7 @@
 {
 	"$schema": "https://inlang.com/schema/inlang-message-format",
 	"hello_world": "Hello, {name} from ko!",
-	"app_name": "open-nexus",
+	"app_name": "OpenYASKE",
 	"app_description": "수강 관리 앱",
 	"nav_home": "홈",
 	"nav_timetable": "시간표",
@@ -239,7 +239,7 @@
 	"settings_account_remote_guide_title": "연결 순서",
 	"settings_account_remote_guide_step_1": "RemoteStorage 호환 서비스의 계정을 준비합니다.",
 	"settings_account_remote_guide_step_2": "발급된 사용자 주소를 user@host 형식으로 입력합니다.",
-	"settings_account_remote_guide_step_3": "다음에 열리는 인증 화면에서 open-nexus 접근을 허용합니다.",
+	"settings_account_remote_guide_step_3": "다음에 열리는 인증 화면에서 OpenYASKE 접근을 허용합니다.",
 	"settings_account_remote_address_label": "사용자 주소",
 	"settings_account_remote_address_placeholder": "name@storage.example",
 	"settings_account_remote_address_hint": "여기에 비밀번호를 입력하지 마세요. 인증은 연결된 서비스 화면에서 진행됩니다.",

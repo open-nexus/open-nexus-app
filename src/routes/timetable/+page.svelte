@@ -156,7 +156,7 @@
 				type: 'image/png'
 			});
 			if (navigator.canShare?.({ files: [file] })) {
-				await navigator.share({ files: [file], title: 'open-nexus 時間割' });
+				await navigator.share({ files: [file], title: 'OpenYASKE 時間割' });
 				return;
 			}
 			const url = URL.createObjectURL(blob);
@@ -197,7 +197,7 @@
 </script>
 
 <svelte:head>
-	<title>{m.nav_timetable()} | open-nexus</title>
+	<title>{m.nav_timetable()} | OpenYASKE</title>
 </svelte:head>
 
 <div

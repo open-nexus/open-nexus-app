@@ -54,7 +54,7 @@ describe('publicData', () => {
 			expect(data.schemaVersion).toBe(1);
 			expect(mockFetch).toHaveBeenCalledTimes(1);
 			expect(mockFetch).toHaveBeenCalledWith(
-				'https://cdn.jsdelivr.net/gh/ueckoken/open-nexus-data@main/public-data.json',
+				'https://cdn.jsdelivr.net/gh/ueckoken/open-yaske-data@main/public-data.json',
 				expect.objectContaining({ signal: expect.any(AbortSignal) })
 			);
 		});
@@ -207,7 +207,7 @@ describe('publicData', () => {
 			await loadPublicData();
 			expect(mockSet).toHaveBeenCalledTimes(1);
 			expect(mockSet).toHaveBeenCalledWith(
-				'open-nexus:public-data',
+				'open-yaske:public-data',
 				expect.objectContaining({ data: expect.any(Object), fetchedAt: BASE_TIME })
 			);
 		});
@@ -225,7 +225,7 @@ describe('publicData', () => {
 			const data = await refreshPublicData();
 			expect(data.schemaVersion).toBe(1);
 			expect(mockDel).toHaveBeenCalledTimes(1);
-			expect(mockDel).toHaveBeenCalledWith('open-nexus:public-data');
+			expect(mockDel).toHaveBeenCalledWith('open-yaske:public-data');
 		});
 	});
 

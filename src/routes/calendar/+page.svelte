@@ -387,7 +387,7 @@
 	});
 </script>
 
-<svelte:head><title>{m.nav_calendar()} | open-nexus</title></svelte:head>
+<svelte:head><title>{m.nav_calendar()} | OpenYASKE</title></svelte:head>
 
 {#snippet leadingSnippet()}
 	<IconButton

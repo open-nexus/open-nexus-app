@@ -1,7 +1,7 @@
 /**
  * RemoteStorage.js クライアント (v2 API)
  *
- * /open-nexus/ モジュール以下にユーザー個別データを保存:
+ * /open-yaske/ モジュール以下にユーザー個別データを保存:
  * - courses/: 履修科目
  * - todos/: TODO
  * - events/: カレンダーイベント
@@ -11,7 +11,7 @@
  * - custom-packs/: カスタムテーマパック
  *
  * 対応バージョン: remotestoragejs@2.0.0-beta.9
- * - `moduleNames` オプション削除 → 代わりに `rs.scope('/open-nexus/')` を使用
+ * - `moduleNames` オプション削除 → 代わりに `rs.scope('/open-yaske/')` を使用
  * - `declareType` は `BaseClient` に移動
  * - `access.claimAccess` → `access.claim` (v0.10 で rename)
  * - `rs[moduleName]` のマジッククライアント削除
@@ -20,7 +20,7 @@
 import { browser } from '$app/environment';
 import RemoteStorage_ from 'remotestoragejs';
 
-const APP_NAME = 'open-nexus';
+const APP_NAME = 'open-yaske';
 
 type RSInstance = InstanceType<typeof RemoteStorage_> & {
 	scope: (path: string) => BaseClientShape;

@@ -10,8 +10,8 @@ import * as remoteStorage from '$lib/remotestorage';
 import { setPublicDataCdnBase } from '$lib/publicData';
 import { themeStore } from './theme.svelte';
 
-const STORAGE_KEY = 'open-nexus:user-settings';
-const ACTIVE_THEME_KEY = 'open-nexus:active-theme';
+const STORAGE_KEY = 'open-yaske:user-settings';
+const ACTIVE_THEME_KEY = 'open-yaske:active-theme';
 
 function resolveThemePackId(settings: UserSettings) {
 	const themePackIdLight = settings.themePackIdLight || 'default';

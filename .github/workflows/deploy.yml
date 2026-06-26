@@ -96,19 +96,19 @@ jobs:
 
       - name: Sign Android APK
         run: |
-          echo "${{ secrets.SIGNING_KEY }}" | base64 --decode > open-nexus.jks
+          echo "${{ secrets.SIGNING_KEY }}" | base64 --decode > open-yaske.jks
           BUILD_TOOLS_DIR=$(ls -d $ANDROID_HOME/build-tools/* | tail -n 1)
-          $BUILD_TOOLS_DIR/apksigner sign --ks open-nexus.jks \
+          $BUILD_TOOLS_DIR/apksigner sign --ks open-yaske.jks \
             --ks-key-alias "${{ secrets.KEY_ALIAS }}" \
             --ks-pass pass:"${{ secrets.KEYSTORE_PASSWORD }}" \
             --key-pass pass:"${{ secrets.KEY_PASSWORD }}" \
             --out android/app/build/outputs/apk/release/app-release-signed.apk \
             android/app/build/outputs/apk/release/app-release-unsigned.apk
-
+ 
       - name: Upload Signed APK Artifact
         uses: actions/upload-artifact@v4
         with:
-          name: open-nexus-android-release-apk
+          name: open-yaske-android-release-apk
           path: android/app/build/outputs/apk/release/app-release-signed.apk
 
   # iOS IPA Build
@@ -154,5 +154,5 @@ jobs:
       - name: Upload iOS Archive Artifact
         uses: actions/upload-artifact@v4
         with:
-          name: open-nexus-ios-archive
+          name: open-yaske-ios-archive
           path: ios/App/build/App.xcarchive

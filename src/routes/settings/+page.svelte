@@ -24,7 +24,7 @@
 	import { Search, Download, Upload, Trash2, Cloud, CloudOff, Info, Link2 } from '@lucide/svelte';
 	import { Capacitor } from '@capacitor/core';
 
-	const appVersion = '0.0.1';
+	const appVersion = '2026.06.26';
 
 	// ----- Cmd+K ショートカット -----
 	function handleGlobalKeydown(e: KeyboardEvent) {
@@ -106,7 +106,7 @@
 		const url = URL.createObjectURL(blob);
 		const a = document.createElement('a');
 		a.href = url;
-		a.download = 'open-nexus-settings.json';
+		a.download = 'open-yaske-settings.json';
 		a.click();
 		URL.revokeObjectURL(url);
 		uiStore.toast(m.toast_saved(), 'success');
@@ -400,7 +400,7 @@
 
 <svelte:window onkeydown={handleGlobalKeydown} />
 
-<svelte:head><title>{m.settings_title()} | open-nexus</title></svelte:head>
+<svelte:head><title>{m.settings_title()} | OpenYASKE</title></svelte:head>
 
 <PageHeader
 	title={m.settings_title()}
@@ -1130,7 +1130,7 @@
 			>
 		</div>
 		<a
-			href="https://github.com/"
+			href="https://github.com/open-yaske/open-yaske-app"
 			target="_blank"
 			rel="noopener noreferrer"
 			class="flex items-center justify-between px-4 py-3 text-sm text-[var(--color-nav-active)] transition-colors hover:bg-[var(--color-surface-muted)]"

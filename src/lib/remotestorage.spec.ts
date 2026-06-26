@@ -68,7 +68,7 @@ describe('remotestorage', () => {
 		const instance = getRemoteStorage();
 		expect(instance).toBe(mockRs);
 		expect(RemoteStorage).toHaveBeenCalledWith({ cache: true });
-		expect(mockRs.scope).toHaveBeenCalledWith('/open-nexus/');
+		expect(mockRs.scope).toHaveBeenCalledWith('/open-yaske/');
 		expect(mockClient.declareType).toHaveBeenCalledTimes(7);
 		expect(mockClient.declareType).toHaveBeenCalledWith('courses', {
 			type: 'object',
@@ -102,7 +102,7 @@ describe('remotestorage', () => {
 	it('initRemoteStorage claims access and registers event listeners', async () => {
 		const { initRemoteStorage } = await import('./remotestorage');
 		initRemoteStorage();
-		expect(mockRs.access.claim).toHaveBeenCalledWith('open-nexus', 'rw');
+		expect(mockRs.access.claim).toHaveBeenCalledWith('open-yaske', 'rw');
 		expect(mockRs.on).toHaveBeenCalledWith('connected', expect.any(Function));
 		expect(mockRs.on).toHaveBeenCalledWith('disconnected', expect.any(Function));
 	});

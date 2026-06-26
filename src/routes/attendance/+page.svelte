@@ -80,7 +80,7 @@
 </script>
 
 <svelte:head>
-	<title>{m.nav_attendance()} | open-nexus</title>
+	<title>{m.nav_attendance()} | OpenYASKE</title>
 </svelte:head>
 
 {#snippet leadingSnippet()}

@@ -11,7 +11,7 @@ import { browser } from '$app/environment';
 import * as remoteStorage from '$lib/remotestorage';
 import type { Course, Todo, CalendarEvent, AttendanceRecord } from '$lib/types';
 
-const STORAGE_KEY_PREFIX = 'open-nexus:userdata:';
+const STORAGE_KEY_PREFIX = 'open-yaske:userdata:';
 
 class UserDataStore {
 	initialized = $state(false);

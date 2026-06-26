@@ -242,7 +242,7 @@
 	];
 </script>
 
-<svelte:head><title>{m.theme_editor_title()} | open-nexus</title></svelte:head>
+<svelte:head><title>{m.theme_editor_title()} | OpenYASKE</title></svelte:head>
 
 <PageHeader
 	title={m.theme_editor_title()}

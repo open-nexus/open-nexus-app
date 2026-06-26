@@ -1,6 +1,6 @@
 import { expect, test } from '@playwright/test';
 
-test.describe('open-nexus E2E Suite', () => {
+test.describe('OpenYASKE E2E Suite', () => {
 	test('Verify 10 major app scenarios', async ({ page }) => {
 		// --- Helper function for responsive navigation ---
 		async function navigateTo(tabName: string) {
@@ -15,7 +15,7 @@ test.describe('open-nexus E2E Suite', () => {
 		// --- Scenario 1: Verify Initial Home Page ---
 		await page.goto('/');
 		await page.waitForLoadState('domcontentloaded');
-		await expect(page).toHaveTitle(/ホーム | open-nexus/);
+		await expect(page).toHaveTitle(/ホーム | OpenYASKE/);
 
 		// Verify navigation tabs are visible (either sidebar or bottom navigation)
 		const timetableNav = page
@@ -42,7 +42,7 @@ test.describe('open-nexus E2E Suite', () => {
 
 		// --- Scenario 2: Timetable Page - Empty State ---
 		await navigateTo('時間割');
-		await expect(page).toHaveTitle(/時間割 | open-nexus/);
+		await expect(page).toHaveTitle(/時間割 | OpenYASKE/);
 		await expect(page.locator('text=科目が登録されていません')).toBeVisible();
 
 		// --- Scenario 3: Timetable Page - Add Course ---
@@ -69,7 +69,7 @@ test.describe('open-nexus E2E Suite', () => {
 
 		// --- Scenario 5: TODO Page - Add Task ---
 		await navigateTo('TODO');
-		await expect(page).toHaveTitle(/TODO | open-nexus/);
+		await expect(page).toHaveTitle(/TODO | OpenYASKE/);
 		// Click FAB (aria-label="TODO を追加")
 		await page.click('button[aria-label="TODO を追加"]');
 		await page.fill('label:has-text("内容") + div input', 'レポート提出');
@@ -85,7 +85,7 @@ test.describe('open-nexus E2E Suite', () => {
 
 		// --- Scenario 7: Calendar Page - Switch Views ---
 		await navigateTo('カレンダー');
-		await expect(page).toHaveTitle(/カレンダー | open-nexus/);
+		await expect(page).toHaveTitle(/カレンダー | OpenYASKE/);
 		// Switch to week view
 		await page.click('button:has-text("週")');
 		await expect(page.locator('text=終日')).toBeVisible();
@@ -96,7 +96,7 @@ test.describe('open-nexus E2E Suite', () => {
 
 		// --- Scenario 8: Attendance Page - Verify denominator exclusion of cancelled classes ---
 		await navigateTo('出席');
-		await expect(page).toHaveTitle(/出席 | open-nexus/);
+		await expect(page).toHaveTitle(/出席 | OpenYASKE/);
 		await expect(page.locator('text=ソフトウェア工学')).toBeVisible();
 		// Verify initial attendance rate is 0% (checking with regex due to space representation in HTML)
 		await expect(page.locator('text=/0\\s*%/')).toBeVisible();
@@ -116,9 +116,9 @@ test.describe('open-nexus E2E Suite', () => {
 
 		// --- Scenario 9: Settings Page - Switch theme pack ---
 		await navigateTo('その他');
-		await expect(page).toHaveTitle(/その他 | open-nexus/);
+		await expect(page).toHaveTitle(/その他 | OpenYASKE/);
 		await page.click('a:has-text("設定")');
-		await expect(page).toHaveTitle(/設定 | open-nexus/);
+		await expect(page).toHaveTitle(/設定 | OpenYASKE/);
 
 		// Change theme pack to "uec"
 		await page.selectOption('#settings-theme select', 'uec');

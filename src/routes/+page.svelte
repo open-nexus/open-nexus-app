@@ -379,7 +379,7 @@
 </script>
 
 <svelte:head>
-	<title>{m.nav_home()} | open-nexus</title>
+	<title>{m.nav_home()} | OpenYASKE</title>
 </svelte:head>
 
 <!-- Mock header: settings left, notification right -->

@@ -26,7 +26,7 @@
 		Laptop
 	} from '@lucide/svelte';
 
-	const appVersion = '0.0.1';
+	const appVersion = '2026.06.26';
 	let showClearConfirm = $state(false);
 
 	function handleExportData() {
@@ -40,7 +40,7 @@
 		const url = URL.createObjectURL(blob);
 		const a = document.createElement('a');
 		a.href = url;
-		a.download = 'open-nexus-data.json';
+		a.download = 'open-yaske-data.json';
 		a.click();
 		URL.revokeObjectURL(url);
 		uiStore.toast('データを書き出しました', 'success');
@@ -104,7 +104,7 @@
 	});
 </script>
 
-<svelte:head><title>{m.category_other()} | open-nexus</title></svelte:head>
+<svelte:head><title>{m.category_other()} | OpenYASKE</title></svelte:head>
 
 {#snippet leadingSnippet()}
 	<IconButton
@@ -212,7 +212,7 @@
 		iconColor="var(--color-primary-500)"
 	/>
 	<ListItem
-		href="https://github.com/"
+		href="https://github.com/open-yaske/open-yaske-app"
 		title={m.settings_about_source()}
 		icon={Link2}
 		iconColor="var(--color-primary-500)"

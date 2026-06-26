@@ -1,4 +1,4 @@
-package com.opennexus.app;
+package com.openyaske.app;
 
 import com.getcapacitor.BridgeActivity;
 

@@ -1,4 +1,4 @@
-# open-nexus
+# OpenYASKE
 
 電気通信大学（UEC）向けの履修管理アプリです。SvelteKit + Capacitor で Web / Android / iOS を 1 つのコードベースから提供し、Local-First / Offline-First を前提にしています。
 
@@ -63,7 +63,7 @@ pnpm exec paraglide-js compile
 ## Project Structure
 
 ```text
-open-nexus/
+open-yaske/
 ├── AGENTS.md                 # AI エージェント向け開発ガイド
 ├── ARCHITECTURE.md           # アーキテクチャ概要
 ├── README.md
