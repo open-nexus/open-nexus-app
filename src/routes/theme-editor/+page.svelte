@@ -16,6 +16,7 @@
 		parsePack,
 		loadPackFromUrl,
 		applyTheme,
+		getLocalizedText,
 		type ThemePack,
 		type ColorScale,
 		type ColorEntry,
@@ -280,7 +281,7 @@
 				class:text-[var(--color-nav-active)]={basePackId !== pack.id}
 				onclick={() => loadBasePack(pack.id)}
 			>
-				{pack.name || pack.id}
+				{getLocalizedText(pack.name, 'ja') || pack.id}
 			</button>
 		{/each}
 	</div>
@@ -288,7 +289,7 @@
 	<!-- pack metadata -->
 	<div class="mb-4 grid grid-cols-1 gap-3 sm:grid-cols-2">
 		<TextField
-			value={editingPack.name}
+			value={typeof editingPack.name === 'string' ? editingPack.name : (editingPack.name.ja || '')}
 			label={m.theme_editor_name()}
 			placeholder={m.theme_editor_name_placeholder()}
 			oninput={(e) => updateName((e.currentTarget as HTMLInputElement).value)}

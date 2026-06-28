@@ -120,7 +120,7 @@
 			<div
 				class="py-2 text-center text-xs font-medium
 				{(weekStart === 'sun' && i === 0) || (weekStart === 'mon' && i === 6)
-					? 'text-[var(--color-attendance-absent-fg)]'
+					? 'text-[var(--color-danger-500)]'
 					: (weekStart === 'sun' && i === 6) || (weekStart === 'mon' && i === 5)
 						? 'text-[var(--color-primary-500)]'
 						: 'text-[var(--color-nav-inactive)]'}"
@@ -155,10 +155,10 @@
 						{isToday
 							? 'bg-[var(--color-primary-500)] text-white'
 							: holiday
-								? 'text-[var(--color-attendance-absent-fg)]'
+								? 'text-[var(--color-danger-500)]'
 								: isWeekend && isCurrentMonth
 									? day.getDay() === 0
-										? 'text-[var(--color-attendance-absent-fg)]'
+										? 'text-[var(--color-danger-500)]'
 										: 'text-[var(--color-primary-500)]'
 									: isCurrentMonth
 										? 'text-[var(--color-nav-active)]'
@@ -168,7 +168,7 @@
 					</span>
 					{#if holiday}
 						<span
-							class="truncate text-[8px] leading-tight text-[var(--color-attendance-absent-fg)] max-w-[40px]"
+							class="truncate text-[8px] leading-tight text-[var(--color-danger-500)] max-w-[40px]"
 						>
 							{holiday}
 						</span>

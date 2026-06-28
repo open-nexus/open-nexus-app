@@ -16,10 +16,20 @@ export type ColorScale = {
 	900: string;
 };
 
+export type LocalizedString =
+	| string
+	| {
+			ja?: string;
+			en?: string;
+			zh?: string;
+			ko?: string;
+			[locale: string]: string | undefined;
+	  };
+
 export type ColorEntry = {
 	id: string;
-	/** i18n key */
-	name: string;
+	/** i18n key or translation object */
+	name: LocalizedString;
 	hex: string;
 	isCustom?: boolean;
 };
@@ -76,9 +86,9 @@ export type ThemePalette = {
 
 export type ThemePack = {
 	id: string;
-	/** i18n key */
-	name: string;
-	description?: string;
+	/** i18n key or translation object */
+	name: LocalizedString;
+	description?: LocalizedString;
 	version: 1;
 	ui: ThemeUI;
 	palette: ThemePalette;

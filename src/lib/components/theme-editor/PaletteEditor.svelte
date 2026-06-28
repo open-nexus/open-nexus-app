@@ -5,6 +5,7 @@
 -->
 <script lang="ts">
 	import type { ColorEntry } from '$lib/theme';
+	import { getLocalizedText } from '$lib/theme';
 	import { m } from '$lib/paraglide/messages';
 	import { Plus, Trash2 } from '@lucide/svelte';
 
@@ -70,7 +71,7 @@
 						value={color.hex}
 						oninput={(e) => handleColorInput(e, i)}
 						class="absolute inset-0 cursor-pointer opacity-0"
-						aria-label={color.name}
+						aria-label={getLocalizedText(color.name, 'ja')}
 					/>
 				</label>
 				<div class="min-w-0 flex-1">
@@ -83,7 +84,7 @@
 					/>
 					<input
 						type="text"
-						value={color.name}
+						value={typeof color.name === 'string' ? color.name : (color.name.ja || '')}
 						oninput={(e) => updateName(i, (e.currentTarget as HTMLInputElement).value)}
 						class="w-full bg-transparent text-[10px] text-[var(--color-nav-inactive)] focus:outline-none"
 						placeholder="color_name"

@@ -5,7 +5,8 @@
 -->
 <script lang="ts">
 	import type { ColorEntry } from '$lib/theme';
-	import { NONE_TOKEN, isCustomColor } from '$lib/theme';
+	import { NONE_TOKEN, isCustomColor, getLocalizedText } from '$lib/theme';
+	import { settingsStore } from '$lib/stores';
 	import { RAINBOW_GRADIENT, DEFAULT_CUSTOM_HEX } from '$lib/theme/picker-gradient';
 
 	interface Props {
@@ -76,7 +77,7 @@
 				class:border-[var(--color-primary-500)]={selected}
 				class:border-[var(--color-surface-border)]={!selected}
 				style="background-color: {c.hex}"
-				aria-label={c.name}
+				aria-label={getLocalizedText(c.name, settingsStore.settings.locale)}
 				aria-pressed={selected}
 				onclick={() => selectPreset(idx)}
 			></button>

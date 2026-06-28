@@ -57,11 +57,16 @@ themes/
 - `/todos/` — TODO リスト
 - `/calendar/` — カレンダーイベント
 - `/attendance/` — 出席記録（**5 状態**: 出席 / 欠席 / 遅刻 / 公欠 / **休講**）
-- `/user/` — 設定・Preferences・テーマパック・カスタムカラー
+- `/user/` — 設定・Preferences・テーマパック・カスタムカラーなど
 
 ローカル: IndexedDB（RS.js が自動管理）+ Capacitor Preferences（必要時）
 
-### 3. インメモリストア
+### 3. 学校データ（`schoolDataService` / `src/lib/schoolData.svelte.ts`）
+
+- 設定からユーザー定義された **SPARQL エンドポイント** および **CDN URL** から、建物・施設（`SchoolSpatialItem`）および大学組織（`SchoolOrgItem`）のJSON配列をフェッチします。
+- フェッチされたデータは Local-First の考えに基づき IndexedDB / ローカルストレージに強力にキャッシュされ、完全オフライン環境下でも学校内の部屋、マップピン、部署情報の検索・ブラウズが可能です。
+
+### 4. インメモリストア
 
 Svelte 5 Runes ベース:
 
@@ -113,6 +118,14 @@ type ThemePack = {
 
 - `theme-tokens/no-raw-hex` で `style="...#..."` / `bg-[#...]` 禁止
 - `src/lib/theme/` 配下のみ例外
+
+## モジュラー機能配置アーキテクチャ
+
+本アプリは、単なる固定されたナビゲーション構成ではなく、すべての主要コンテンツ（時間割、TODO、カレンダー、出席、データブラウザ、PDF、GPA）を「個別の機能モジュール（Feature）」として抽象化しています。
+- **`settingsStore.settings.barFeatures`**: ユーザーが下部/側部ナビゲーションバーにショートカット配置したい機能のIDリスト（最大5つ）。
+- **`settingsStore.settings.homeFeatures`**: ホーム（ダッシュボード）に表示したい機能のIDリスト。
+- **`settingsStore.settings.homeFeatureLayouts`**: 機能IDごとに `widget`（インラインデータ小部品）または `button`（リンクカード）のいずれかのレンダリングレイアウトをバインド。
+- これにより、ユーザーは自分のユースケースに合わせて、ホーム画面やバーのレイアウトを自由自在に再配置・カスタマイズできます。
 
 ## 拡張可能公開データ（DashboardCard）
 

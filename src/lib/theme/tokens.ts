@@ -3,7 +3,7 @@
  * テーマパックの `palette` から ColorEntry を引き、ID / HEX を解決する
  */
 
-import type { ColorEntry, ThemePack, ThemePalette } from './types';
+import type { ColorEntry, ThemePack, ThemePalette, LocalizedString } from './types';
 
 /** 特別な「なし」トークン */
 export const NONE_TOKEN = 'none' as const;
@@ -71,7 +71,7 @@ export function resolveColorHex(pack: ThemePack, token: string | null | undefine
 /**
  * カラー ID を表示用の名前（i18n key）に解決
  */
-export function resolveColorName(pack: ThemePack, token: string | null | undefined): string {
+export function resolveColorName(pack: ThemePack, token: string | null | undefined): LocalizedString {
 	if (!token || token === NONE_TOKEN) return 'color_none';
 	if (token.startsWith('custom:')) return 'color_custom';
 	if (token.startsWith('index:')) {

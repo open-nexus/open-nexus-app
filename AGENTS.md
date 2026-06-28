@@ -50,6 +50,13 @@ src/lib/theme/
 - コンポーネントは `var(--color-primary-500)` のような CSS 変数経由で参照
 - カスタムパックはユーザーが作成可能（Settings > テーマ）
 
+## 📐 デザイン原則（Google DESIGN.md）
+
+アプリ全体のビジュアル設計は、[Google DESIGN.md](Google DESIGN.md) で規定された「フラットなタイル・カードデザイン」に完全準拠してください。
+- **影 (Shadow) の原則的排除**: `shadow-sm` などの静的シャドウクラスは原則禁止です。境界線と背景色の使い分けで階層を表現します。
+- **角丸の統一**: ボタンや入力欄、セレクトボックスには `rounded-chip`、大きな配置ウィジェット等には `rounded-card` を使用します。
+- **コンポーネントの統一**: フォームパーツは生タグを避け、標準の `TextField` に統一します。
+
 ## 📦 データ層
 
 ### 公開データ（科目マスター + ダッシュボード + テーマ）
@@ -66,7 +73,16 @@ src/lib/theme/
 - `/todos/` : TODOリスト
 - `/calendar/` : カレンダーイベント
 - `/attendance/` : 出席記録（**5 状態**: 出席 / 欠席 / 遅刻 / 公欠 / **休講**）
-- `/user/` : 設定・Preferences・テーマパック
+- `/user/` : 設定・Preferences・テーマパック・カスタムカラーなど
+
+### 学校データ（`schoolDataService` / `src/lib/schoolData.svelte.ts`）
+- 従来の固定データ（UEC Atlas）から、データソースURL、ライセンス（CC BY-NC-SA 等）、SPARQL エンドポイントの設定情報を動的にバインドし、ローカルへキャッシュ（ stashed JSON 配列）する共通構造へと一般化。
+
+## 🆕 モジュラー機能配置システム
+アプリの各主要ルート（`timetable`, `todo`, `calendar`, `attendance`, `data-browser`, `pdf`, `gpa`）を単一の「カスタム機能（Feature）」として抽象化し、設定画面からユーザー好みにレイアウトを再構成できるアーキテクチャ。
+- **ナビゲーションバー（`barFeatures`）**: 最大5つまでの機能を下部/側部バーのボタンに配置可能。
+- **ホーム画面（`homeFeatures`）**: ホーム（ダッシュボード）に各機能を配置可能。
+- **ホームレイアウト（`homeFeatureLayouts`）**: 各機能ごとに「ミニウィジェット（`widget`）」または「ボタン（`button`）」としての表示形式を選択可能。
 
 ## 🆕 出席状態（5 値）
 
@@ -100,10 +116,11 @@ type DashboardCard =
 - `src/lib/types.ts` — 共通型定義
 - `src/lib/types/public.ts` — 公開データ型（DashboardCard, PublicCourse）
 - `src/lib/remotestorage.ts` — RemoteStorageクライアント
-- `src/lib/publicData.ts` — 公開データ取得 + IndexedDB キャッシュ
+- `src/lib/schoolData.svelte.ts` — 学校データのフェッチ・キャッシュサービス
+- `src/lib/publicData.ts` — 公開シラバスデータ取得 + IndexedDB キャッシュ
 - `src/lib/attendance.ts` — 出席率計算（休講除外）
 - `src/lib/html-renderer.ts` — DOMPurify ラッパー
-- `src/lib/browser.ts` — ブラウザ起動ユーティリティ（Capacitor ネイティブ / Web 共通）
+- `src/lib/browser.ts` — アプリ内ブラウザ起動ユーティリティ
 - `vite.config.ts` — SvelteKit設定・アダプター
 - `capacitor.config.ts`
 

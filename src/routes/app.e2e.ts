@@ -43,10 +43,11 @@ test.describe('OpenYASKE E2E Suite', () => {
 		// --- Scenario 2: Timetable Page - Empty State ---
 		await navigateTo('時間割');
 		await expect(page).toHaveTitle(/時間割 | OpenYASKE/);
-		await expect(page.locator('text=科目が登録されていません')).toBeVisible();
+		await expect(page.locator('text=授業を追加')).toBeVisible();
+		await expect(page.locator('text=0 単位')).toBeVisible();
 
 		// --- Scenario 3: Timetable Page - Add Course ---
-		await page.click('button:has-text("科目を追加")');
+		await page.click('button:has-text("授業を追加")');
 		await page.fill('label:has-text("科目名") + div input', 'ソフトウェア工学');
 		await page.fill('label:has-text("担当") + div input', '山田太郎');
 		await page.fill('label:has-text("教室") + div input', '東1号館101');
@@ -57,11 +58,11 @@ test.describe('OpenYASKE E2E Suite', () => {
 		await page.click('button:has-text("保存")');
 
 		// Verify added course in WeekGrid
-		await expect(page.locator('text=ソフトウェア工学')).toBeVisible();
+		await expect(page.locator('text=ソフトウェア工学').first()).toBeVisible();
 		await expect(page.locator('text=東1号館101')).toBeVisible();
 
 		// --- Scenario 4: Timetable Page - Syllabus details ---
-		await page.click('text=ソフトウェア工学');
+		await page.locator('text=ソフトウェア工学').first().click();
 		await expect(page.locator('text=シラバス')).toBeVisible();
 		await expect(page.locator('text=山田太郎')).toBeVisible();
 		await expect(page.locator('text=必修')).toBeVisible();
@@ -97,27 +98,27 @@ test.describe('OpenYASKE E2E Suite', () => {
 		// --- Scenario 8: Attendance Page - Verify denominator exclusion of cancelled classes ---
 		await navigateTo('出席');
 		await expect(page).toHaveTitle(/出席 | OpenYASKE/);
-		await expect(page.locator('text=ソフトウェア工学')).toBeVisible();
+		await expect(page.locator('text=ソフトウェア工学').first()).toBeVisible();
 		// Verify initial attendance rate is 0% (checking with regex due to space representation in HTML)
-		await expect(page.locator('text=/0\\s*%/')).toBeVisible();
+		await expect(page.locator('text=/0\\s*%/').first()).toBeVisible();
 
 		// Mark present
 		await page.click('button[aria-label="出席"]');
-		await expect(page.locator('text=/100\\s*%/')).toBeVisible();
+		await expect(page.locator('text=/100\\s*%/').first()).toBeVisible();
 
 		// Mark absent (overwrites today's status to absent, so rate becomes 0%)
 		await page.click('button[aria-label="欠席"]');
-		await expect(page.locator('text=/0\\s*%/')).toBeVisible();
-		await expect(page.locator('text=4集計')).toBeVisible(); // remaining absences: 5 - 1 = 4. Localization uses "集計" for count.
+		await expect(page.locator('text=/0\\s*%/').first()).toBeVisible();
+		await expect(page.locator('text=4回').first()).toBeVisible(); // remaining absences: 5 - 1 = 4. Localization uses "回" for count.
 
 		// Mark cancelled (overwrites today's status to cancelled, which is excluded from denominator, rate is 0%)
 		await page.click('button[aria-label="休講"]');
-		await expect(page.locator('text=/0\\s*%/')).toBeVisible();
+		await expect(page.locator('text=/0\\s*%/').first()).toBeVisible();
 
 		// --- Scenario 9: Settings Page - Switch theme pack ---
 		await navigateTo('その他');
 		await expect(page).toHaveTitle(/その他 | OpenYASKE/);
-		await page.click('a:has-text("設定")');
+		await page.click('a[href*="settings"]');
 		await expect(page).toHaveTitle(/設定 | OpenYASKE/);
 
 		// Change theme pack to "uec"

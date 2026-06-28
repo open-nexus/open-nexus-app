@@ -503,7 +503,7 @@
 <!-- FAB -->
 <button
 	type="button"
-	class="fixed bottom-24 right-4 z-30 flex h-14 w-14 items-center justify-center rounded-full bg-[var(--color-primary-800)] text-white shadow-lg transition-transform hover:scale-105 active:scale-95 dark:bg-[var(--color-primary-500)] dark:text-slate-950 dark:hover:bg-[var(--color-primary-400)] md:bottom-8"
+	class="fixed bottom-24 right-4 z-30 flex h-14 w-14 items-center justify-center rounded-full bg-[var(--color-primary-800)] text-[var(--color-primary-50)] shadow-lg transition-all hover:bg-[var(--color-primary-900)] hover:scale-105 active:scale-95 md:bottom-8"
 	aria-label={m.calendar_add()}
 	onclick={handleAddNew}
 >

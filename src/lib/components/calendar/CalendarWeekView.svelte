@@ -223,7 +223,7 @@
 						{isToday
 							? 'bg-[var(--color-primary-500)] text-white'
 							: holiday
-								? 'text-[var(--color-attendance-absent-fg)]'
+								? 'text-[var(--color-danger-500)]'
 								: 'text-[var(--color-nav-active)]'}"
 					>
 						{day.getDate()}

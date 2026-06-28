@@ -5,7 +5,7 @@
 -->
 <script lang="ts">
 	import type { Component, Snippet } from 'svelte';
-	import { resolve } from '$app/paths';
+	import { resolve, base } from '$app/paths';
 	import { page } from '$app/state';
 	import { PanelLeftClose, PanelLeftOpen } from '@lucide/svelte';
 	import type { RouteId } from '$app/types';
@@ -48,7 +48,7 @@
 		{#if !collapsed}
 			<div class="flex items-center gap-2 overflow-hidden">
 				<img
-					src={logoData || resolve('/favicon.png')}
+					src={logoData || `${base}/favicon.png`}
 					alt="Logo"
 					class="h-8 w-8 rounded-md shrink-0 object-cover"
 				/>

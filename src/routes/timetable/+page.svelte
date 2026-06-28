@@ -8,14 +8,34 @@
 	import WeekGrid from '$lib/components/timetable/WeekGrid.svelte';
 	import CourseEditSheet from '$lib/components/timetable/CourseEditSheet.svelte';
 	import SyllabusSheet from '$lib/components/timetable/SyllabusSheet.svelte';
+	import SyllabusPreviewSheet from '$lib/components/timetable/SyllabusPreviewSheet.svelte';
 	import { Plus, Share2, GraduationCap, Sun, Moon, Laptop, ChevronDown } from '@lucide/svelte';
 	import { resolveColorHex } from '$lib/theme';
+	import { page } from '$app/stores';
 
 	let editOpen = $state(false);
 	let syllabusOpen = $state(false);
+	let syllabusPreviewOpen = $state(false);
+	let syllabusPreviewId = $state<string | null>(null);
 	let selectedCourse = $state<Course | null>(null);
 	let prefillDay = $state<DayOfWeek>('mon');
 	let prefillPeriod = $state<Period>(1);
+
+	$effect(() => {
+		const editCourseId = $page.url.searchParams.get('editCourseId');
+		if (editCourseId) {
+			const found = userDataStore.courses.find((c) => c.id === editCourseId);
+			if (found) {
+				selectedCourse = found;
+				editOpen = true;
+
+				// URLからパラメータを削除して履歴を上書き (再起動防止)
+				const newUrl = new URL(window.location.href);
+				newUrl.searchParams.delete('editCourseId');
+				window.history.replaceState({}, '', newUrl.toString());
+			}
+		}
+	});
 
 	const dayRange = $derived(settingsStore.settings.timetableDayRange);
 	const periodRange = $derived(settingsStore.settings.timetablePeriodRange);
@@ -56,6 +76,11 @@
 	function handleEditFromSyllabus() {
 		syllabusOpen = false;
 		editOpen = true;
+	}
+
+	function handleSyllabusViewFromEdit(sid: string) {
+		syllabusPreviewId = sid;
+		syllabusPreviewOpen = true;
 	}
 
 	function wrapCanvasText(
@@ -224,7 +249,7 @@
 			<span class="sr-only">{m.settings_semester()}</span>
 			<select
 				bind:value={currentSemester}
-				class="h-9 w-full cursor-pointer appearance-none rounded-pill border border-[var(--color-surface-border)] bg-[var(--color-surface-card)]/95 py-1.5 pl-4 pr-9 text-center text-sm font-bold text-[var(--color-nav-active)] shadow-sm outline-none transition-colors hover:bg-[var(--color-surface-muted)] focus:border-[var(--color-primary-500)] focus:ring-2 focus:ring-[var(--color-primary-500)]/25"
+				class="h-9 w-full cursor-pointer appearance-none rounded-chip border border-[var(--color-surface-border)] bg-[var(--color-surface-card)]/95 py-1.5 pl-4 pr-9 text-center text-sm font-bold text-[var(--color-nav-active)] outline-none transition-colors hover:bg-[var(--color-surface-muted)] focus:border-[var(--color-primary-500)] focus:ring-2 focus:ring-[var(--color-primary-500)]/25"
 				style="-webkit-appearance: none; -moz-appearance: none; appearance: none;"
 			>
 				<option value="spring"
@@ -277,11 +302,11 @@
 
 			<!-- Total credits card -->
 			<div
-				class="flex items-center justify-between rounded-card bg-[var(--color-primary-50)] text-[var(--color-primary-800)] p-4 shadow-sm"
+				class="flex items-center justify-between rounded-card bg-[var(--color-primary-50)] text-[var(--color-primary-800)] p-4"
 			>
 				<div class="flex items-center gap-2.5">
 					<span
-						class="flex h-10 w-10 items-center justify-center rounded-full bg-white text-[var(--color-primary-700)] dark:bg-[var(--color-primary-900)] dark:text-[var(--color-primary-300)]"
+						class="flex h-10 w-10 items-center justify-center rounded-full bg-[var(--color-primary-100)] text-[var(--color-primary-800)]"
 					>
 						<GraduationCap size={20} />
 					</span>
@@ -301,6 +326,7 @@
 	course={selectedCourse}
 	{prefillDay}
 	{prefillPeriod}
+	onsyllabusview={handleSyllabusViewFromEdit}
 />
 
 <SyllabusSheet
@@ -308,4 +334,10 @@
 	onclose={() => (syllabusOpen = false)}
 	course={selectedCourse}
 	onedit={handleEditFromSyllabus}
+/>
+
+<SyllabusPreviewSheet
+	bind:open={syllabusPreviewOpen}
+	onclose={() => (syllabusPreviewOpen = false)}
+	syllabusId={syllabusPreviewId}
 />

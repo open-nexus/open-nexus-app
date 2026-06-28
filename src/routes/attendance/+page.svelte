@@ -104,7 +104,7 @@
 			<div class="space-y-2">
 				<SectionHeader>統計</SectionHeader>
 				<div
-					class="rounded-card border border-[var(--color-surface-border)] bg-[var(--color-surface-card)] p-5 shadow-sm space-y-4 max-w-5xl mx-auto"
+					class="rounded-card border border-[var(--color-surface-border)] bg-[var(--color-surface-card)] p-5 space-y-4 max-w-5xl mx-auto"
 				>
 					<div class="grid grid-cols-2 gap-4">
 						<div class="space-y-0.5">

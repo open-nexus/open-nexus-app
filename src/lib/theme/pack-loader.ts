@@ -20,6 +20,15 @@ function isString(v: unknown): v is string {
 	return typeof v === 'string';
 }
 
+function isLocalizedString(v: unknown): boolean {
+	if (typeof v === 'string') return true;
+	if (typeof v === 'object' && v !== null) {
+		const o = v as Record<string, unknown>;
+		return Object.values(o).every((val) => typeof val === 'string');
+	}
+	return false;
+}
+
 function isHex(v: unknown): v is string {
 	return isString(v) && HEX_RE.test(v);
 }
@@ -31,7 +40,7 @@ function validateColorEntry(v: unknown, path: string, errors: ThemeValidationErr
 	}
 	const o = v as Record<string, unknown>;
 	if (!isString(o.id)) errors.push(err(`${path}.id`, 'must be a string'));
-	if (!isString(o.name)) errors.push(err(`${path}.name`, 'must be a string'));
+	if (!isLocalizedString(o.name)) errors.push(err(`${path}.name`, 'must be a string or localized object'));
 	if (!isHex(o.hex)) errors.push(err(`${path}.hex`, 'must be a valid hex color'));
 	return errors.filter((e) => e.path.startsWith(path)).length === 0;
 }
@@ -149,7 +158,10 @@ export function validatePack(data: unknown): ValidationResult {
 	const o = data as Record<string, unknown>;
 
 	if (!isString(o.id)) errors.push(err('id', 'must be a string'));
-	if (!isString(o.name)) errors.push(err('name', 'must be a string'));
+	if (!isLocalizedString(o.name)) errors.push(err('name', 'must be a string or localized object'));
+	if (o.description !== undefined && !isLocalizedString(o.description)) {
+		errors.push(err('description', 'must be a string or localized object'));
+	}
 	if (o.version !== 1) errors.push(err('version', 'must be 1'));
 
 	validateUI(o.ui, 'ui', errors);

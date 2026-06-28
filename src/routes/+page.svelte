@@ -33,12 +33,17 @@
 	} from '@lucide/svelte';
 	import type { Component } from 'svelte';
 	import { Capacitor } from '@capacitor/core';
+	import TimetableWidget from '$lib/components/dashboard/TimetableWidget.svelte';
+	import TodoWidget from '$lib/components/dashboard/TodoWidget.svelte';
+	import CalendarWidget from '$lib/components/dashboard/CalendarWidget.svelte';
+	import AttendanceWidget from '$lib/components/dashboard/AttendanceWidget.svelte';
+	import FeatureLinkCard from '$lib/components/dashboard/FeatureLinkCard.svelte';
 
 	type HomeLink = {
 		id: string;
 		name: string;
 		url: string;
-		icon: Component<{ size?: number }>;
+		icon: Component<{ size?: number; class?: string }>;
 		forceExternal?: boolean;
 		custom?: boolean;
 	};
@@ -79,6 +84,23 @@
 			name: 'JB Moodle',
 			url: 'https://joho.g-edu.uec.ac.jp/moodle3/',
 			icon: BookOpen,
+			forceExternal: true
+		}
+	];
+
+	const defaultBottomLinks: HomeLink[] = [
+		{
+			id: 'youran',
+			name: '学修要覧',
+			url: 'https://kyoumu.office.uec.ac.jp/youran/youran.html',
+			icon: Book,
+			forceExternal: true
+		},
+		{
+			id: 'timet',
+			name: '時間割',
+			url: 'http://kyoumu.office.uec.ac.jp/timet/index.html',
+			icon: Calendar,
 			forceExternal: true
 		}
 	];
@@ -129,6 +151,13 @@
 
 	const fixedStudyLinks = $derived(
 		defaultStudyLinks.map((link) => {
+			const override = fixedOverrides.get(link.id);
+			return override ? { ...link, name: override.name, url: override.url } : link;
+		})
+	);
+
+	const bottomLinks = $derived(
+		defaultBottomLinks.map((link) => {
 			const override = fixedOverrides.get(link.id);
 			return override ? { ...link, name: override.name, url: override.url } : link;
 		})
@@ -487,11 +516,11 @@
 				{#each fixedStudyLinks as link (link.id)}
 					<div class="relative aspect-square">
 						<a
-							href={linkHref(link.url, link.forceExternal)}
-							target={linkTarget(link.forceExternal)}
-							rel={linkRel(link.forceExternal)}
+							href={linkHref(link.url)}
+							target={linkTarget()}
+							rel={linkRel()}
 							onclick={(e) => handleLinkClick(e, link.url, link.forceExternal)}
-							class="flex h-full flex-col items-center justify-center rounded-card border border-[var(--color-surface-border)] bg-[var(--color-surface-card)] p-3 text-center transition-all hover:bg-[var(--color-surface-muted)] active:scale-[0.98]"
+							class="flex h-full flex-col items-center justify-center rounded-card border border-[var(--color-surface-border)] bg-[var(--color-surface-card)] p-3 text-center transition-colors hover:bg-[var(--color-surface-muted)]"
 						>
 							<span
 								class="mb-2 flex h-11 w-11 items-center justify-center rounded-full bg-[var(--color-primary-50)] text-[var(--color-primary-800)]"
@@ -521,7 +550,7 @@
 							target={linkTarget()}
 							rel={linkRel()}
 							onclick={(e) => handleLinkClick(e, link.url)}
-							class="flex h-full flex-col items-center justify-center rounded-card border border-[var(--color-surface-border)] bg-[var(--color-surface-card)] p-3 text-center transition-all hover:bg-[var(--color-surface-muted)] active:scale-[0.98]"
+							class="flex h-full flex-col items-center justify-center rounded-card border border-[var(--color-surface-border)] bg-[var(--color-surface-card)] p-3 text-center transition-colors hover:bg-[var(--color-surface-muted)]"
 						>
 							<span
 								class="mb-2 flex h-11 w-11 items-center justify-center rounded-full bg-[var(--color-primary-50)] text-[var(--color-primary-800)]"
@@ -548,7 +577,7 @@
 					<button
 						type="button"
 						onclick={openAddLink}
-						class="flex h-full w-full flex-col items-center justify-center rounded-card border border-dashed border-[var(--color-surface-border)] bg-[var(--color-surface-card)] p-3 text-center transition-all hover:bg-[var(--color-surface-muted)] active:scale-[0.98]"
+						class="flex h-full w-full flex-col items-center justify-center rounded-card border border-dashed border-[var(--color-surface-border)] bg-[var(--color-surface-card)] p-3 text-center transition-colors hover:bg-[var(--color-surface-muted)]"
 					>
 						<span
 							class="mb-2 flex h-11 w-11 items-center justify-center rounded-full bg-[var(--color-primary-50)] text-[var(--color-primary-800)]"
@@ -566,82 +595,53 @@
 			<!-- Additional 2 wide buttons under grid -->
 			<!-- eslint-disable svelte/no-navigation-without-resolve -->
 			<div class="grid grid-cols-2 gap-3">
-				<!-- 学修要覧 -->
-				<a
-					href="https://kyoumu.office.uec.ac.jp/youran/youran.html"
-					target="_blank"
-					rel="noopener noreferrer"
-					onclick={(e) => handleLinkClick(e, 'https://kyoumu.office.uec.ac.jp/youran/youran.html')}
-					class="flex items-center justify-between rounded-card border border-[var(--color-surface-border)] bg-[var(--color-surface-card)] px-4 py-3.5 transition-all hover:bg-[var(--color-surface-muted)] active:scale-[0.98]"
-				>
-					<span class="flex items-center gap-2 text-sm font-bold text-[var(--color-nav-active)]">
-						<Book size={18} class="text-[var(--color-primary-700)]" />
-						学修要覧
-					</span>
-					<ChevronRight size={16} color="var(--color-nav-inactive)" />
-				</a>
-
-				<!-- 時間割 -->
-				<a
-					href="http://kyoumu.office.uec.ac.jp/timet/index.html"
-					target="_blank"
-					rel="noopener noreferrer"
-					onclick={(e) =>
-						handleLinkClick(e, 'http://kyoumu.office.uec.ac.jp/timet/index.html', true)}
-					class="flex items-center justify-between rounded-card border border-[var(--color-surface-border)] bg-[var(--color-surface-card)] px-4 py-3.5 transition-all hover:bg-[var(--color-surface-muted)] active:scale-[0.98]"
-				>
-					<span class="flex items-center gap-2 text-sm font-bold text-[var(--color-nav-active)]">
-						<Calendar size={18} class="text-[var(--color-primary-700)]" />
-						時間割
-					</span>
-					<ChevronRight size={16} color="var(--color-nav-inactive)" />
-				</a>
+				{#each bottomLinks as link (link.id)}
+					<div class="relative group aspect-[180/54]">
+						<a
+							href={linkHref(link.url)}
+							target={linkTarget()}
+							rel={linkRel()}
+							onclick={(e) => handleLinkClick(e, link.url, link.forceExternal)}
+							class="flex h-full items-center justify-between rounded-card border border-[var(--color-surface-border)] bg-[var(--color-surface-card)] pl-4 pr-10 py-3.5 transition-colors hover:bg-[var(--color-surface-muted)]"
+						>
+							<span class="flex items-center gap-2 text-sm font-bold text-[var(--color-nav-active)]">
+								<link.icon size={18} class="text-[var(--color-primary-700)]" />
+								<span class="line-clamp-1">{link.name}</span>
+							</span>
+							<ChevronRight size={16} class="text-[var(--color-nav-inactive)]" />
+						</a>
+						<button
+							type="button"
+							onclick={() => openEditFixedLink(link)}
+							class="absolute right-2 top-1/2 -translate-y-1/2 flex h-7 w-7 items-center justify-center rounded-full bg-[var(--color-surface-card)]/95 text-[var(--color-nav-inactive)] transition-colors hover:text-[var(--color-nav-active)]"
+							aria-label="リンクを編集"
+						>
+							<Pencil size={14} />
+						</button>
+					</div>
+				{/each}
 			</div>
 			<!-- eslint-enable svelte/no-navigation-without-resolve -->
 		</div>
 
-		<!-- 便利ツール (Responsive layout: 1 col list on mobile, 3 cols cards on desktop) -->
-		<div class="space-y-3">
-			<SectionHeader>便利ツール</SectionHeader>
-			<div class="grid grid-cols-1 md:grid-cols-3 gap-3">
-				<!-- 写真 -> PDF 変換 -->
-				<a
-					href={resolve('/pdf')}
-					class="flex items-center gap-3 rounded-card border border-[var(--color-surface-border)] bg-[var(--color-surface-card)] p-3 transition-all hover:bg-[var(--color-surface-muted)] active:scale-[0.99] text-left"
-				>
-					<div
-						class="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-[var(--color-primary-50)] text-[var(--color-primary-800)]"
-					>
-						<FileText size={22} />
-					</div>
-					<div class="flex-1 min-w-0">
-						<h4 class="text-sm font-bold text-[var(--color-nav-active)]">写真 → PDF 変換</h4>
-						<p class="text-[10px] text-[var(--color-nav-inactive)] truncate mt-0.5">
-							複数の写真を 1 つの PDF にまとめて共有
-						</p>
-					</div>
-					<ChevronRight size={16} class="text-[var(--color-nav-inactive)] shrink-0" />
-				</a>
+		<hr class="border-[var(--color-surface-border)]" />
 
-				<!-- GPA 計算機 -->
-				<a
-					href={resolve('/gpa')}
-					class="flex items-center gap-3 rounded-card border border-[var(--color-surface-border)] bg-[var(--color-surface-card)] p-3 text-left transition-all hover:bg-[var(--color-surface-muted)] active:scale-[0.99]"
-				>
-					<div
-						class="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-[var(--color-primary-50)] text-[var(--color-primary-800)]"
-					>
-						<Calculator size={22} />
-					</div>
-					<div class="min-w-0 flex-1">
-						<h4 class="text-sm font-bold text-[var(--color-nav-active)]">GPA 計算機</h4>
-						<p class="mt-0.5 truncate text-[10px] text-[var(--color-nav-inactive)]">
-							単位数と評価から GPA を計算
-						</p>
-					</div>
-					<ChevronRight size={16} class="shrink-0 text-[var(--color-nav-inactive)]" />
-				</a>
-			</div>
+		<!-- 動的カスタマイズ機能エリア -->
+		<div class="space-y-4">
+			{#each settings.homeFeatures as fid (fid)}
+				{@const layout = settings.homeFeatureLayouts?.[fid] || 'button'}
+				{#if fid === 'timetable' && layout === 'widget'}
+					<TimetableWidget />
+				{:else if fid === 'todo' && layout === 'widget'}
+					<TodoWidget />
+				{:else if fid === 'calendar' && layout === 'widget'}
+					<CalendarWidget />
+				{:else if fid === 'attendance' && layout === 'widget'}
+					<AttendanceWidget />
+				{:else if fid !== 'dashboard'}
+					<FeatureLinkCard id={fid} />
+				{/if}
+			{/each}
 		</div>
 	</div>
 </Container>

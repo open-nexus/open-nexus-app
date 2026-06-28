@@ -79,6 +79,12 @@ class SettingsStore {
 						...parsed.attendanceNotification
 					};
 				}
+				if (parsed.homeFeatureLayouts) {
+					this.settings.homeFeatureLayouts = {
+						...DEFAULT_USER_SETTINGS.homeFeatureLayouts,
+						...parsed.homeFeatureLayouts
+					};
+				}
 			} catch {
 				this.settings = { ...DEFAULT_USER_SETTINGS };
 			}
@@ -107,7 +113,8 @@ class SettingsStore {
 			...this.settings,
 			...partial,
 			timetablePeriods,
-			attendanceNotification
+			attendanceNotification,
+			updatedAt: Date.now()
 		};
 		if (browser) {
 			localStorage.setItem(STORAGE_KEY, JSON.stringify(this.settings));
@@ -128,7 +135,7 @@ class SettingsStore {
 	}
 
 	reset() {
-		this.settings = { ...DEFAULT_USER_SETTINGS };
+		this.settings = { ...DEFAULT_USER_SETTINGS, updatedAt: Date.now() };
 		if (browser) {
 			localStorage.removeItem(STORAGE_KEY);
 		}
@@ -160,22 +167,36 @@ class SettingsStore {
 						remote.themePackIdDark = 'dark';
 					}
 				}
-				this.settings = { ...DEFAULT_USER_SETTINGS, ...remote };
-				if (remote.timetablePeriods) {
-					this.settings.timetablePeriods = {
-						...DEFAULT_USER_SETTINGS.timetablePeriods,
-						...remote.timetablePeriods
-					};
+
+				const remoteUpdatedAt = remote.updatedAt || 0;
+				const localUpdatedAt = this.settings.updatedAt || 0;
+
+				if (remoteUpdatedAt > localUpdatedAt) {
+					this.settings = { ...DEFAULT_USER_SETTINGS, ...remote };
+					if (remote.timetablePeriods) {
+						this.settings.timetablePeriods = {
+							...DEFAULT_USER_SETTINGS.timetablePeriods,
+							...remote.timetablePeriods
+						};
+					}
+					if (remote.attendanceNotification) {
+						this.settings.attendanceNotification = {
+							...DEFAULT_USER_SETTINGS.attendanceNotification,
+							...remote.attendanceNotification
+						};
+					}
+					if (remote.homeFeatureLayouts) {
+						this.settings.homeFeatureLayouts = {
+							...DEFAULT_USER_SETTINGS.homeFeatureLayouts,
+							...remote.homeFeatureLayouts
+						};
+					}
+					localStorage.setItem(STORAGE_KEY, JSON.stringify(this.settings));
+					setPublicDataCdnBase(this.settings.dataCdnUrl || null);
+					applyBuiltinThemeImmediately(this.settings);
+				} else if (remoteUpdatedAt < localUpdatedAt) {
+					await this.syncToRS();
 				}
-				if (remote.attendanceNotification) {
-					this.settings.attendanceNotification = {
-						...DEFAULT_USER_SETTINGS.attendanceNotification,
-						...remote.attendanceNotification
-					};
-				}
-				localStorage.setItem(STORAGE_KEY, JSON.stringify(this.settings));
-				setPublicDataCdnBase(this.settings.dataCdnUrl || null);
-				applyBuiltinThemeImmediately(this.settings);
 			} else {
 				// リモートに設定データが存在しない場合は、現在のローカル設定をアップロードする（初期同期）
 				await this.syncToRS();

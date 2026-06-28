@@ -8,6 +8,7 @@
 	import { BottomTabBar, SideNav } from '$lib/components';
 	import { Home, Calendar, BookOpen, CheckSquare, BarChart3, MoreHorizontal } from '@lucide/svelte';
 	import { m } from '$lib/paraglide/messages';
+	import { APP_FEATURES, getFeatureName } from '$lib/features';
 	import { browser, dev } from '$app/environment';
 	import { syncNotifications } from '$lib/notifications';
 	import './layout.css';
@@ -55,9 +56,10 @@
 		if (typeof window !== 'undefined') {
 			const pathSegments = window.location.pathname.split('/');
 			const firstSegment = pathSegments[1];
+			const fallbackLocale = settingsStore.settings.locale || 'ja';
 			const detectedLocale = (locales as readonly string[]).includes(firstSegment)
 				? (firstSegment as (typeof locales)[number])
-				: 'ja';
+				: fallbackLocale;
 			setLocale(detectedLocale, { reload: false });
 			currentLocaleSignal = detectedLocale;
 		}
@@ -66,26 +68,88 @@
 	const tabs = $derived.by<NavLink[]>(() => {
 		// eslint-disable-next-line @typescript-eslint/no-unused-expressions
 		currentLocaleSignal;
-		return [
-			{ href: '/', label: m.nav_home(), icon: Home },
-			{ href: '/timetable', label: m.nav_timetable(), icon: BookOpen },
-			{ href: '/todo', label: m.nav_todo(), icon: CheckSquare },
-			{ href: '/calendar', label: m.nav_calendar(), icon: Calendar },
-			{ href: '/attendance', label: m.nav_attendance(), icon: BarChart3 },
-			{ href: '/more', label: m.nav_more(), icon: MoreHorizontal }
-		];
+
+		const barFeatures = settingsStore.settings.barFeatures || ['timetable', 'todo', 'calendar', 'attendance'];
+		const links: NavLink[] = [];
+
+		for (const fid of barFeatures) {
+			const f = APP_FEATURES.find((item) => item.id === fid);
+			if (f) {
+				links.push({
+					href: localizeHref(f.href) as RouteId,
+					label: getFeatureName(f.id),
+					icon: f.icon as any
+				});
+			}
+		}
+
+		// 末尾に必ず「その他」を固定
+		links.push({
+			href: localizeHref('/more') as RouteId,
+			label: m.nav_more(),
+			icon: MoreHorizontal
+		});
+
+		return links;
 	});
 
 	const navItems = $derived(tabs);
 
 	const fontFamilyStyle = $derived.by(() => {
 		const font = settingsStore.settings.fontFamily;
+		const locale = currentLocaleSignal;
+
+		// 1) サンセリフ (ゴシック体) および Noto (互換用)
+		if (font === 'sans' || font === 'noto') {
+			if (locale === 'zh') {
+				return "font-family: 'Noto Sans SC', 'PingFang SC', 'Microsoft YaHei', sans-serif;";
+			} else if (locale === 'ko') {
+				return "font-family: 'Noto Sans KR', 'Malgun Gothic', 'Apple SD Gothic Neo', sans-serif;";
+			} else if (locale === 'ja') {
+				return "font-family: 'Noto Sans JP', sans-serif;";
+			}
+			return "font-family: 'Noto Sans', system-ui, -apple-system, sans-serif;";
+		}
+
+		// 2) セリフ (明朝体)
+		if (font === 'serif') {
+			if (locale === 'zh') {
+				return "font-family: 'Noto Serif SC', 'Songti SC', 'SimSun', serif;";
+			} else if (locale === 'ko') {
+				return "font-family: 'Noto Serif KR', 'Batang', 'AppleMyungjo', serif;";
+			} else if (locale === 'ja') {
+				return "font-family: 'Noto Serif JP', 'BIZ UDMincho', serif;";
+			}
+			return "font-family: 'Noto Serif', Georgia, 'Times New Roman', serif;";
+		}
+
+		// 3) さわらびゴシック (CJKフォールバック含む)
+		if (font === 'sawarabi') {
+			if (locale === 'zh') {
+				return "font-family: 'Sawarabi Gothic', 'Noto Sans SC', 'PingFang SC', sans-serif;";
+			} else if (locale === 'ko') {
+				return "font-family: 'Sawarabi Gothic', 'Noto Sans KR', 'Malgun Gothic', sans-serif;";
+			}
+			return "font-family: 'Sawarabi Gothic', 'Noto Sans JP', sans-serif;";
+		}
+
+		// 4) Outfit (欧文メイン + 多言語フォールバック)
 		if (font === 'outfit') {
+			if (locale === 'zh') {
+				return "font-family: 'Outfit', 'Noto Sans SC', 'PingFang SC', 'Microsoft YaHei', sans-serif;";
+			} else if (locale === 'ko') {
+				return "font-family: 'Outfit', 'Noto Sans KR', 'Malgun Gothic', 'Apple SD Gothic Neo', sans-serif;";
+			} else if (locale === 'ja') {
+				return "font-family: 'Outfit', 'Noto Sans JP', sans-serif;";
+			}
 			return "font-family: 'Outfit', system-ui, -apple-system, sans-serif;";
-		} else if (font === 'sawarabi') {
-			return "font-family: 'Sawarabi Gothic', sans-serif;";
-		} else if (font === 'noto') {
-			return "font-family: 'Noto Sans JP', sans-serif;";
+		}
+
+		// 5) デフォルト / システムフォント
+		if (locale === 'zh') {
+			return "font-family: system-ui, -apple-system, BlinkMacSystemFont, 'PingFang SC', 'Microsoft YaHei', sans-serif;";
+		} else if (locale === 'ko') {
+			return "font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Apple SD Gothic Neo', 'Malgun Gothic', sans-serif;";
 		}
 		return "font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;";
 	});

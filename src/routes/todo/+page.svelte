@@ -164,7 +164,7 @@
 <!-- FAB -->
 <button
 	type="button"
-	class="fixed bottom-24 right-4 z-30 flex h-14 w-14 items-center justify-center rounded-full bg-[var(--color-primary-800)] text-white shadow-[var(--shadow-card)] transition-colors hover:bg-[var(--color-primary-900)] dark:bg-[var(--color-primary-500)] dark:text-slate-950 dark:hover:bg-[var(--color-primary-400)] focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-primary-800)] dark:focus-visible:ring-[var(--color-primary-500)] focus-visible:ring-offset-2 md:bottom-6"
+	class="fixed bottom-24 right-4 z-30 flex h-14 w-14 items-center justify-center rounded-full bg-[var(--color-primary-800)] text-[var(--color-primary-50)] shadow-[var(--shadow-card)] transition-all hover:bg-[var(--color-primary-900)] focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-primary-800)] focus-visible:ring-offset-2 md:bottom-6"
 	aria-label={m.todo_add()}
 	onclick={openAddSheet}
 >

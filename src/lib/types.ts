@@ -200,10 +200,25 @@ export type UserSettings = {
 	externalLinks: ExternalLink[];
 	dashboardCardOrder: string[];
 	hiddenDashboardCards: string[];
+	/** ナビゲーションバーに表示する機能IDのリスト (最大4つ) */
+	barFeatures: string[];
+	/** ホームに表示する機能IDのリスト */
+	homeFeatures: string[];
+	/** ホームでの表示レイアウト（'widget' | 'button'） */
+	homeFeatureLayouts: Record<string, 'widget' | 'button'>;
+	/** ホーム画面ウィジェット：システムのテーマ色を使用するか */
+	widgetUseSystemTheme: boolean;
+	/** ホーム画面ウィジェット：カスタムカラー（HEX） */
+	widgetThemeColor: string;
 	/** 公開データ CDN ベース URL。空ならビルド時環境変数 / 既定値を使用 */
 	dataCdnUrl: string;
+	schoolDataSparqlEndpoint: string;
+	schoolDataSourceTitle: string;
+	schoolDataSourceUrl: string;
+	schoolDataLicenseTitle: string;
+	schoolDataLicenseUrl: string;
 	emojiStyle: 'native' | 'twemoji';
-	fontFamily: 'system' | 'outfit' | 'sawarabi' | 'noto';
+	fontFamily: 'system' | 'outfit' | 'sawarabi' | 'noto' | 'sans' | 'serif';
 	/** 背景画像をすべての画面（アプリ全体）に適用するか */
 	bgImageAllPages: boolean;
 	/** カスタムマークダウンメモ */
@@ -212,6 +227,8 @@ export type UserSettings = {
 	customAppName?: string;
 	/** カスタマイズ：アプリのロゴ（Base64形式の画像データ） */
 	customLogoData?: string;
+	/** 設定の最終更新時刻 */
+	updatedAt?: number;
 };
 
 export const DEFAULT_USER_SETTINGS: UserSettings = {
@@ -265,11 +282,32 @@ export const DEFAULT_USER_SETTINGS: UserSettings = {
 	externalLinks: [],
 	dashboardCardOrder: [],
 	hiddenDashboardCards: [],
+	barFeatures: ['timetable', 'todo', 'calendar', 'attendance'],
+	homeFeatures: ['timetable', 'todo', 'calendar', 'attendance', 'gpa', 'pdf', 'syllabus', 'data-browser', 'data-management'],
+	homeFeatureLayouts: {
+		timetable: 'widget',
+		todo: 'widget',
+		calendar: 'widget',
+		attendance: 'widget',
+		gpa: 'button',
+		pdf: 'button',
+		syllabus: 'button',
+		'data-browser': 'button',
+		'data-management': 'button'
+	},
+	widgetUseSystemTheme: true,
+	widgetThemeColor: '#17288B',
 	dataCdnUrl: '',
+	schoolDataSparqlEndpoint: 'https://uec-atlas.org/sparql',
+	schoolDataSourceTitle: 'UEC Atlas',
+	schoolDataSourceUrl: 'https://uec-atlas.org/',
+	schoolDataLicenseTitle: 'CC BY-NC-SA 4.0',
+	schoolDataLicenseUrl: 'https://creativecommons.org/licenses/by-nc-sa/4.0/',
 	emojiStyle: 'native',
 	fontFamily: 'system',
 	bgImageAllPages: false,
 	customMemo: '',
 	customAppName: '',
-	customLogoData: ''
+	customLogoData: '',
+	updatedAt: 0
 };

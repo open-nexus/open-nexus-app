@@ -1,16 +1,32 @@
 /**
  * 公開データストア
- * - loadPublicData() をラップして Rune ストアとして公開
- * - オフライン状態を追跡 (navigator.onLine)
+ * - schoolDataService.courseItems をソースとする derived ストア
+ * - 既存のシラバス関連コンポーネントとの後方互換用
  */
 
 import { browser } from '$app/environment';
-import { loadPublicData, refreshPublicData } from '$lib/publicData';
+import { schoolDataService } from '$lib/schoolData.svelte';
 import type { PublicData } from '$lib/types/public';
+import { PUBLIC_DATA_SCHEMA_VERSION } from '$lib/types/public';
 
 class PublicDataStore {
-	data = $state<PublicData | null>(null);
-	loading = $state(false);
+	// schoolDataService の科目からリアクティブに PublicData を構築
+	data = $derived.by<PublicData | null>(() => {
+		const courses = schoolDataService.courseItems;
+		return {
+			schemaVersion: PUBLIC_DATA_SCHEMA_VERSION,
+			generatedAt: new Date().toISOString(),
+			index: {
+				version: 1,
+				generatedAt: new Date().toISOString(),
+				count: courses.length
+			},
+			courses,
+			dashboardCards: [] // LODに統合されたため空にする
+		};
+	});
+
+	loading = $derived(schoolDataService.loading);
 	error = $state<string | null>(null);
 	online = $state(true);
 	initialized = $state(false);
@@ -29,30 +45,20 @@ class PublicDataStore {
 			this.online = false;
 		});
 
-		void this.load();
+		void schoolDataService.init();
 	}
 
 	async load() {
-		this.loading = true;
-		this.error = null;
-		try {
-			this.data = await loadPublicData();
-		} catch (err) {
-			this.error = err instanceof Error ? err.message : String(err);
-		} finally {
-			this.loading = false;
-		}
+		await schoolDataService.init();
 	}
 
 	async refresh() {
-		this.loading = true;
 		this.error = null;
 		try {
-			this.data = await refreshPublicData();
+			await schoolDataService.sync();
 		} catch (err) {
 			this.error = err instanceof Error ? err.message : String(err);
-		} finally {
-			this.loading = false;
+			throw err;
 		}
 	}
 }

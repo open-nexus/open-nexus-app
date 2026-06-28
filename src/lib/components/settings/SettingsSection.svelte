@@ -4,6 +4,7 @@
   iOS風のグループ化カード: グレーセクション見出し + 白い角丸カード + アイテムスロット。
 -->
 <script lang="ts">
+	import SectionHeader from '../SectionHeader.svelte';
 	import type { Snippet } from 'svelte';
 
 	interface Props {
@@ -13,19 +14,17 @@
 		id?: string;
 		/** 補助説明（見出し下に表示） */
 		description?: string;
+		/** クラス */
+		class?: string;
 		/** アイテム群 */
 		children: Snippet;
 	}
 
-	let { title, id, description, children }: Props = $props();
+	let { title, id, description, class: className = '', children }: Props = $props();
 </script>
 
-<section {id} class="scroll-mt-20">
-	<div
-		class="mb-1.5 px-1 text-xs font-medium uppercase tracking-wide text-[var(--color-nav-inactive)]"
-	>
-		{title}
-	</div>
+<section {id} class="scroll-mt-20 {className}">
+	<SectionHeader>{title}</SectionHeader>
 	{#if description}
 		<p class="mb-2 px-1 text-xs text-[var(--color-nav-inactive)]">{description}</p>
 	{/if}

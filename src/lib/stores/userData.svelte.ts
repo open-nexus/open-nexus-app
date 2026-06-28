@@ -111,21 +111,117 @@ class UserDataStore {
 			return;
 		}
 
-		// リモートにデータがある場合は、ローカルを上書きする
-		if (courseList.length) {
-			this.courses = courseList;
+		// 1) Courses のマージ
+		const mergedCourses = [...this.courses];
+		let coursesChanged = false;
+		for (const remoteCourse of courseList) {
+			const localIndex = mergedCourses.findIndex((c) => c.id === remoteCourse.id);
+			if (localIndex >= 0) {
+				const localCourse = mergedCourses[localIndex];
+				if (remoteCourse.updatedAt > localCourse.updatedAt) {
+					mergedCourses[localIndex] = remoteCourse;
+					coursesChanged = true;
+				} else if (localCourse.updatedAt > remoteCourse.updatedAt) {
+					void remoteStorage.rsSet(`courses/${localCourse.id}`, localCourse);
+				}
+			} else {
+				mergedCourses.push(remoteCourse);
+				coursesChanged = true;
+			}
+		}
+		for (const localCourse of this.courses) {
+			if (!courseList.some((c) => c.id === localCourse.id)) {
+				void remoteStorage.rsSet(`courses/${localCourse.id}`, localCourse);
+			}
+		}
+		if (coursesChanged || this.courses.length !== mergedCourses.length) {
+			this.courses = mergedCourses;
 			this.saveLocal('courses', this.courses);
 		}
-		if (todoList.length) {
-			this.todos = todoList;
+
+		// 2) Todos のマージ
+		const mergedTodos = [...this.todos];
+		let todosChanged = false;
+		for (const remoteTodo of todoList) {
+			const localIndex = mergedTodos.findIndex((t) => t.id === remoteTodo.id);
+			if (localIndex >= 0) {
+				const localTodo = mergedTodos[localIndex];
+				if (remoteTodo.updatedAt > localTodo.updatedAt) {
+					mergedTodos[localIndex] = remoteTodo;
+					todosChanged = true;
+				} else if (localTodo.updatedAt > remoteTodo.updatedAt) {
+					void remoteStorage.rsSet(`todos/${localTodo.id}`, localTodo);
+				}
+			} else {
+				mergedTodos.push(remoteTodo);
+				todosChanged = true;
+			}
+		}
+		for (const localTodo of this.todos) {
+			if (!todoList.some((t) => t.id === localTodo.id)) {
+				void remoteStorage.rsSet(`todos/${localTodo.id}`, localTodo);
+			}
+		}
+		if (todosChanged || this.todos.length !== mergedTodos.length) {
+			this.todos = mergedTodos;
 			this.saveLocal('todos', this.todos);
 		}
-		if (eventList.length) {
-			this.events = eventList;
+
+		// 3) Events のマージ
+		const mergedEvents = [...this.events];
+		let eventsChanged = false;
+		for (const remoteEvent of eventList) {
+			const localIndex = mergedEvents.findIndex((e) => e.id === remoteEvent.id);
+			if (localIndex >= 0) {
+				const localEvent = mergedEvents[localIndex];
+				if (remoteEvent.updatedAt > localEvent.updatedAt) {
+					mergedEvents[localIndex] = remoteEvent;
+					eventsChanged = true;
+				} else if (localEvent.updatedAt > remoteEvent.updatedAt) {
+					void remoteStorage.rsSet(`events/${localEvent.id}`, localEvent);
+				}
+			} else {
+				mergedEvents.push(remoteEvent);
+				eventsChanged = true;
+			}
+		}
+		for (const localEvent of this.events) {
+			if (!eventList.some((e) => e.id === localEvent.id)) {
+				void remoteStorage.rsSet(`events/${localEvent.id}`, localEvent);
+			}
+		}
+		if (eventsChanged || this.events.length !== mergedEvents.length) {
+			this.events = mergedEvents;
 			this.saveLocal('events', this.events);
 		}
-		if (attendanceList.length) {
-			this.attendance = attendanceList;
+
+		// 4) Attendance のマージ
+		const mergedAttendance = [...this.attendance];
+		let attendanceChanged = false;
+		for (const remoteAttr of attendanceList) {
+			const localIndex = mergedAttendance.findIndex(
+				(r) => r.courseId === remoteAttr.courseId && r.date === remoteAttr.date
+			);
+			if (localIndex >= 0) {
+				const localAttr = mergedAttendance[localIndex];
+				if (remoteAttr.createdAt > localAttr.createdAt) {
+					mergedAttendance[localIndex] = remoteAttr;
+					attendanceChanged = true;
+				} else if (localAttr.createdAt > remoteAttr.createdAt) {
+					void remoteStorage.rsSet(`attendance/${localAttr.courseId}/${localAttr.date}`, localAttr);
+				}
+			} else {
+				mergedAttendance.push(remoteAttr);
+				attendanceChanged = true;
+			}
+		}
+		for (const localAttr of this.attendance) {
+			if (!attendanceList.some((r) => r.courseId === localAttr.courseId && r.date === localAttr.date)) {
+				void remoteStorage.rsSet(`attendance/${localAttr.courseId}/${localAttr.date}`, localAttr);
+			}
+		}
+		if (attendanceChanged || this.attendance.length !== mergedAttendance.length) {
+			this.attendance = mergedAttendance;
 			this.saveLocal('attendance', this.attendance);
 		}
 	}

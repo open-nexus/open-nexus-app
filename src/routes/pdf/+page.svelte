@@ -187,20 +187,20 @@
 				<button
 					type="button"
 					onclick={startScan}
-					class="flex flex-col items-center justify-center gap-1 rounded-xl bg-[var(--color-primary-800)] py-3.5 text-white transition-all hover:bg-[var(--color-primary-900)]"
+					class="flex flex-col items-center justify-center gap-1 rounded-xl bg-[var(--color-primary-800)] py-3.5 text-[var(--color-primary-50)] transition-all hover:bg-[var(--color-primary-900)]"
 				>
 					<span class="flex items-center gap-1.5 text-sm font-bold">
 						<Camera size={18} />
 						書類をスキャン
 					</span>
-					<span class="text-[10px] text-white/80">複数ページを連続で取り込めます</span>
+					<span class="text-[10px] text-[var(--color-primary-100)]">複数ページを連続で取り込めます</span>
 				</button>
 
 				<!-- 写真を選ぶ -->
 				<button
 					type="button"
 					onclick={triggerSelectFiles}
-					class="flex flex-col items-center justify-center gap-1 rounded-xl border border-[var(--color-primary-200)] bg-white py-3.5 text-[var(--color-primary-800)] transition-all hover:bg-[var(--color-primary-50)]"
+					class="flex flex-col items-center justify-center gap-1 rounded-xl border border-[var(--color-primary-200)] bg-[var(--color-surface-card)] py-3.5 text-[var(--color-primary-800)] transition-all hover:bg-[var(--color-primary-50)]"
 				>
 					<span class="flex items-center gap-1.5 text-sm font-bold">
 						<Image size={18} />

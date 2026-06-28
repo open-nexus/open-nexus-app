@@ -10,9 +10,8 @@
 	import Button from '$lib/components/Button.svelte';
 	import Modal from '$lib/components/Modal.svelte';
 	import SettingsSection from '$lib/components/settings/SettingsSection.svelte';
-	import SettingsSearch, { type SearchItem } from '$lib/components/settings/SettingsSearch.svelte';
 	import { settingsStore, themeStore, uiStore, userDataStore } from '$lib/stores';
-	import { BUILTIN_PACKS } from '$lib/theme';
+	import { BUILTIN_PACKS, getLocalizedText } from '$lib/theme';
 	import type { ThemePack } from '$lib/theme';
 	import {
 		connectRemoteStorage,
@@ -21,42 +20,24 @@
 	} from '$lib/remotestorage';
 	import type { Period, SearchProviderId, UserSettings } from '$lib/types';
 	import { m } from '$lib/paraglide/messages';
-	import { Search, Download, Upload, Trash2, Cloud, CloudOff, Info, Link2 } from '@lucide/svelte';
+	import { Download, Upload, Trash2, Cloud, CloudOff, Info, Link2, ChevronUp, ChevronDown, Plus, X, Search, GripVertical } from '@lucide/svelte';
 	import { Capacitor } from '@capacitor/core';
+	import { APP_FEATURES, getFeatureName } from '$lib/features';
 
 	import { PUBLIC_APP_NAME, SOURCE_URL } from '$lib/constants';
 
-	const appVersion = '2026.06.26';
+	const appVersion = '2026.06.28';
 
-	// ----- Cmd+K ショートカット -----
-	function handleGlobalKeydown(e: KeyboardEvent) {
-		if ((e.metaKey || e.ctrlKey) && e.key === 'k') {
-			e.preventDefault();
-			uiStore.openPalette();
-		}
-	}
+
 
 	// ----- テーマパック名解決 -----
 	function getPackName(pack: ThemePack): string {
-		switch (pack.name) {
-			case 'theme_pack_default':
-				return m.theme_pack_default();
-			case 'theme_pack_uec':
-				return m.theme_pack_uec();
-			case 'theme_pack_dango':
-				return m.theme_pack_dango();
-			case 'theme_pack_dark':
-				return m.theme_pack_dark();
-			case 'theme_pack_custom':
-				return m.theme_pack_custom();
-			default:
-				return pack.name;
-		}
+		return getLocalizedText(pack.name, settingsStore.settings.locale);
 	}
 
 	const themePackOptions = $derived([
 		...BUILTIN_PACKS.map((p) => ({ value: p.id, label: getPackName(p) })),
-		...themeStore.customPacks.map((p) => ({ value: p.id, label: p.name }))
+		...themeStore.customPacks.map((p) => ({ value: p.id, label: getPackName(p) }))
 	]);
 
 	// ----- セグメントコントロール -----
@@ -172,6 +153,12 @@
 		settingsStore.update({ customLogoData: '' });
 		uiStore.toast(m.toast_saved(), 'success');
 	}
+
+	type SearchItem = {
+		category: string;
+		label: string;
+		sectionId: string;
+	};
 
 	// ----- 検索インデックス -----
 	const searchItems = $derived<SearchItem[]>([
@@ -403,9 +390,9 @@
 
 	const fontFamilyOptions = [
 		{ value: 'system', label: m.settings_font_system() },
-		{ value: 'outfit', label: 'Outfit' },
-		{ value: 'sawarabi', label: 'Sawarabi Gothic' },
-		{ value: 'noto', label: 'Noto Sans JP' }
+		{ value: 'outfit', label: 'Outfit (Latin)' },
+		{ value: 'sans', label: m.settings_font_sans() },
+		{ value: 'serif', label: m.settings_font_serif() }
 	];
 
 	const searchProviderOptions: { value: SearchProviderId; label: string }[] = [
@@ -441,22 +428,192 @@
 		settingsStore.update({ timetableBgImage: undefined });
 		uiStore.toast('背景画像を削除しました', 'success');
 	}
-</script>
 
-<svelte:window onkeydown={handleGlobalKeydown} />
+	// ----- 機能配置制御用ヘルパー -----
+	function toggleBarFeature(id: string, checked: boolean) {
+		const current = [...(settingsStore.settings.barFeatures || [])];
+		if (checked) {
+			if (current.length >= 5) {
+				uiStore.toast('バーに配置できるのは最大5つまでです。', 'error');
+				return;
+			}
+			if (!current.includes(id)) {
+				current.push(id);
+			}
+		} else {
+			const index = current.indexOf(id);
+			if (index >= 0) {
+				current.splice(index, 1);
+			}
+		}
+		settingsStore.update({ barFeatures: current });
+	}
+
+	function moveBarFeature(id: string, direction: -1 | 1) {
+		const current = [...(settingsStore.settings.barFeatures || [])];
+		const index = current.indexOf(id);
+		if (index < 0) return;
+		const nextIndex = index + direction;
+		if (nextIndex < 0 || nextIndex >= current.length) return;
+
+		const temp = current[index];
+		current[index] = current[nextIndex];
+		current[nextIndex] = temp;
+
+		settingsStore.update({ barFeatures: current });
+	}
+
+	function toggleHomeFeature(id: string, checked: boolean) {
+		let current = [...(settingsStore.settings.homeFeatures || [])];
+		if (checked) {
+			if (!current.includes(id)) {
+				current.push(id);
+			}
+		} else {
+			current = current.filter((fid) => fid !== id);
+		}
+		settingsStore.update({ homeFeatures: current });
+	}
+
+	function moveHomeFeature(id: string, direction: -1 | 1) {
+		const current = [...(settingsStore.settings.homeFeatures || [])];
+		const index = current.indexOf(id);
+		if (index < 0) return;
+		const nextIndex = index + direction;
+		if (nextIndex < 0 || nextIndex >= current.length) return;
+
+		const temp = current[index];
+		current[index] = current[nextIndex];
+		current[nextIndex] = temp;
+
+		settingsStore.update({ homeFeatures: current });
+	}
+
+	function toggleHomeLayout(id: string) {
+		const currentLayouts = { ...(settingsStore.settings.homeFeatureLayouts || {}) };
+		const current = currentLayouts[id] || 'button';
+		currentLayouts[id] = current === 'widget' ? 'button' : 'widget';
+		settingsStore.update({ homeFeatureLayouts: currentLayouts });
+	}
+
+	let tempBarFeatures = $state<string[]>([]);
+	let tempHomeFeatures = $state<string[]>([]);
+
+	$effect(() => {
+		tempBarFeatures = [...(settingsStore.settings.barFeatures || [])];
+	});
+	$effect(() => {
+		tempHomeFeatures = [...(settingsStore.settings.homeFeatures || [])];
+	});
+
+	const unselectedBar = $derived(APP_FEATURES.filter((f) => !tempBarFeatures.includes(f.id)));
+	const unselectedHome = $derived(APP_FEATURES.filter((f) => f.id !== 'dashboard' && !tempHomeFeatures.includes(f.id)));
+
+	let draggingBarIndex = $state<number | null>(null);
+	let draggingHomeIndex = $state<number | null>(null);
+
+	function handleBarDragStart(index: number) {
+		draggingBarIndex = index;
+	}
+
+	function handleBarDragOver(e: DragEvent, index: number) {
+		e.preventDefault();
+		if (draggingBarIndex === null || draggingBarIndex === index) return;
+		const current = [...tempBarFeatures];
+		const item = current.splice(draggingBarIndex, 1)[0];
+		current.splice(index, 0, item);
+		tempBarFeatures = current;
+		draggingBarIndex = index;
+	}
+
+	function handleBarDragEnd() {
+		draggingBarIndex = null;
+		settingsStore.update({ barFeatures: tempBarFeatures });
+	}
+
+	function handleHomeDragStart(index: number) {
+		draggingHomeIndex = index;
+	}
+
+	function handleHomeDragOver(e: DragEvent, index: number) {
+		e.preventDefault();
+		if (draggingHomeIndex === null || draggingHomeIndex === index) return;
+		const current = [...tempHomeFeatures];
+		const item = current.splice(draggingHomeIndex, 1)[0];
+		current.splice(index, 0, item);
+		tempHomeFeatures = current;
+		draggingHomeIndex = index;
+	}
+
+	function handleHomeDragEnd() {
+		draggingHomeIndex = null;
+		settingsStore.update({ homeFeatures: tempHomeFeatures });
+	}
+
+	let searchQuery = $state('');
+
+	const visibleSections = $derived.by(() => {
+		const q = searchQuery.trim().toLowerCase();
+		if (!q) {
+			return {
+				'settings-language': true,
+				'settings-theme': true,
+				'settings-appearance': true,
+				'settings-customization': true,
+				'settings-semester': true,
+				'settings-location': true,
+				'settings-home': true,
+				'settings-timetable': true,
+				'settings-calendar': true,
+				'settings-attendance': true,
+				'settings-features': true,
+				'settings-widget': true,
+				'settings-about': true
+			};
+		}
+
+		const matchedIds = new Set<string>();
+		for (const item of searchItems) {
+			const fullText = `${item.category} ${item.label}`.toLowerCase();
+			if (fullText.includes(q)) {
+				matchedIds.add(item.sectionId);
+			}
+		}
+
+		return {
+			'settings-language': matchedIds.has('settings-language'),
+			'settings-theme': matchedIds.has('settings-theme'),
+			'settings-appearance': matchedIds.has('settings-appearance'),
+			'settings-customization': matchedIds.has('settings-customization'),
+			'settings-semester': matchedIds.has('settings-semester'),
+			'settings-location': matchedIds.has('settings-location'),
+			'settings-home': matchedIds.has('settings-home'),
+			'settings-timetable': matchedIds.has('settings-timetable'),
+			'settings-calendar': matchedIds.has('settings-calendar'),
+			'settings-attendance': matchedIds.has('settings-attendance'),
+			'settings-features': matchedIds.has('settings-features'),
+			'settings-widget': matchedIds.has('settings-widget'),
+			'settings-about': matchedIds.has('settings-about')
+		};
+	});
+</script>
 
 <svelte:head><title>{m.settings_title()} | OpenYASKE</title></svelte:head>
 
-<PageHeader
-	title={m.settings_title()}
-	trailingIcon={Search}
-	trailingAriaLabel={m.action_search()}
-	ontrailing={() => uiStore.openPalette()}
-/>
+<PageHeader title={m.settings_title()} />
 
 <Container size="narrow" class="space-y-6 py-4">
+	<!-- ===== Inline Search ===== -->
+	<div class="px-1">
+		<TextField
+			bind:value={searchQuery}
+			placeholder={m.action_search()}
+			leadingIcon={Search}
+		/>
+	</div>
+
 	<!-- ===== Language ===== -->
-	<SettingsSection id="settings-language" title={m.settings_locale()}>
+	<SettingsSection id="settings-language" title={m.settings_locale()} class={visibleSections['settings-language'] ? '' : 'hidden'}>
 		<div class="px-4 py-3">
 			<div class="grid grid-cols-4 gap-2">
 				{#each localeOptions as opt (opt.value)}
@@ -476,52 +633,62 @@
 	</SettingsSection>
 
 	<!-- ===== Theme Pack ===== -->
-	<SettingsSection id="settings-theme" title={m.settings_theme_pack()}>
-		<div class="px-4 py-3 space-y-4">
-			<div class="space-y-1">
-				<label
-					for="settings-theme-pack-light"
-					class="text-xs font-semibold text-[var(--color-nav-inactive)]"
-				>
-					{m.settings_theme_light()}
-				</label>
-				<TextField
+	<SettingsSection id="settings-theme" title={m.settings_theme_pack()} class={visibleSections['settings-theme'] ? '' : 'hidden'}>
+		<div class="flex items-center justify-between border-b border-[var(--color-surface-border)] px-4 py-3.5">
+			<span class="text-sm font-medium text-[var(--color-nav-active)]">
+				{m.settings_theme_light()}
+			</span>
+			<label class="relative inline-flex items-center">
+				<select
 					id="settings-theme-pack-light"
-					type="select"
 					value={settingsStore.settings.themePackIdLight || 'default'}
 					onchange={(e) => {
 						const target = e.currentTarget as HTMLSelectElement;
 						settingsStore.update({ themePackIdLight: target.value });
 					}}
-					options={themePackOptions}
-				/>
-			</div>
-			<div class="space-y-1">
-				<label
-					for="settings-theme-pack-dark"
-					class="text-xs font-semibold text-[var(--color-nav-inactive)]"
+					class="h-8 min-w-[7.5rem] cursor-pointer appearance-none rounded-chip border border-[var(--color-surface-border)] bg-[var(--color-surface-card)] py-1 pl-3 pr-8 text-right text-xs font-bold text-[var(--color-nav-active)] outline-none transition-colors hover:bg-[var(--color-surface-muted)] focus:border-[var(--color-primary-500)] focus:ring-2 focus:ring-[var(--color-primary-500)]/25"
+					style="-webkit-appearance: none; -moz-appearance: none; appearance: none;"
 				>
-					{m.settings_theme_dark()}
-				</label>
-				<TextField
+					{#each themePackOptions as opt}
+						<option value={opt.value}>{opt.label}</option>
+					{/each}
+				</select>
+				<span class="pointer-events-none absolute right-2.5 top-1/2 flex -translate-y-1/2 text-[var(--color-nav-inactive)]">
+					<ChevronDown size={12} />
+				</span>
+			</label>
+		</div>
+		<div class="flex items-center justify-between px-4 py-3.5">
+			<span class="text-sm font-medium text-[var(--color-nav-active)]">
+				{m.settings_theme_dark()}
+			</span>
+			<label class="relative inline-flex items-center">
+				<select
 					id="settings-theme-pack-dark"
-					type="select"
 					value={settingsStore.settings.themePackIdDark || 'dark'}
 					onchange={(e) => {
 						const target = e.currentTarget as HTMLSelectElement;
 						settingsStore.update({ themePackIdDark: target.value });
 					}}
-					options={themePackOptions}
-				/>
-			</div>
+					class="h-8 min-w-[7.5rem] cursor-pointer appearance-none rounded-chip border border-[var(--color-surface-border)] bg-[var(--color-surface-card)] py-1 pl-3 pr-8 text-right text-xs font-bold text-[var(--color-nav-active)] outline-none transition-colors hover:bg-[var(--color-surface-muted)] focus:border-[var(--color-primary-500)] focus:ring-2 focus:ring-[var(--color-primary-500)]/25"
+					style="-webkit-appearance: none; -moz-appearance: none; appearance: none;"
+				>
+					{#each themePackOptions as opt}
+						<option value={opt.value}>{opt.label}</option>
+					{/each}
+				</select>
+				<span class="pointer-events-none absolute right-2.5 top-1/2 flex -translate-y-1/2 text-[var(--color-nav-inactive)]">
+					<ChevronDown size={12} />
+				</span>
+			</label>
 		</div>
 	</SettingsSection>
 
 	<!-- ===== Appearance ===== -->
-	<SettingsSection id="settings-appearance" title={m.settings_theme()}>
+	<SettingsSection id="settings-appearance" title={m.settings_theme()} class={visibleSections['settings-appearance'] ? '' : 'hidden'}>
 		<!-- テーマ選択 -->
-		<div class="border-b border-[var(--color-surface-border)] px-4 py-3 space-y-2">
-			<div class="text-xs font-semibold text-[var(--color-nav-inactive)]">
+		<div class="border-b border-[var(--color-surface-border)] px-4 py-3.5 space-y-2">
+			<div class="text-sm font-medium text-[var(--color-nav-active)]">
 				{m.settings_theme_mode()}
 			</div>
 			<div class="grid grid-cols-3 gap-2">
@@ -541,8 +708,8 @@
 		</div>
 
 		<!-- 絵文字スタイル -->
-		<div class="border-b border-[var(--color-surface-border)] px-4 py-3 space-y-2">
-			<div class="text-xs font-semibold text-[var(--color-nav-inactive)]">
+		<div class="border-b border-[var(--color-surface-border)] px-4 py-3.5 space-y-2">
+			<div class="text-sm font-medium text-[var(--color-nav-active)]">
 				{m.settings_emoji_style()}
 			</div>
 			<div class="grid grid-cols-2 gap-2">
@@ -562,28 +729,39 @@
 		</div>
 
 		<!-- フォントファミリー -->
-		<div class="px-4 py-3 space-y-2">
-			<TextField
-				type="select"
-				label={m.settings_font_family()}
-				value={settingsStore.settings.fontFamily}
-				onchange={(e) => {
-					const target = e.currentTarget as HTMLSelectElement;
-					settingsStore.update({ fontFamily: target.value as UserSettings['fontFamily'] });
-				}}
-				options={fontFamilyOptions}
-			/>
+		<div class="flex items-center justify-between px-4 py-3.5">
+			<span class="text-sm font-medium text-[var(--color-nav-active)]">
+				{m.settings_font_family()}
+			</span>
+			<label class="relative inline-flex items-center">
+				<select
+					value={settingsStore.settings.fontFamily}
+					onchange={(e) => {
+						const target = e.currentTarget as HTMLSelectElement;
+						settingsStore.update({ fontFamily: target.value as UserSettings['fontFamily'] });
+					}}
+					class="h-8 min-w-[7.5rem] cursor-pointer appearance-none rounded-chip border border-[var(--color-surface-border)] bg-[var(--color-surface-card)] py-1 pl-3 pr-8 text-right text-xs font-bold text-[var(--color-nav-active)] outline-none transition-colors hover:bg-[var(--color-surface-muted)] focus:border-[var(--color-primary-500)] focus:ring-2 focus:ring-[var(--color-primary-500)]/25"
+					style="-webkit-appearance: none; -moz-appearance: none; appearance: none;"
+				>
+					{#each fontFamilyOptions as opt}
+						<option value={opt.value}>{opt.label}</option>
+					{/each}
+				</select>
+				<span class="pointer-events-none absolute right-2.5 top-1/2 flex -translate-y-1/2 text-[var(--color-nav-inactive)]">
+					<ChevronDown size={12} />
+				</span>
+			</label>
 		</div>
 	</SettingsSection>
 
 	<!-- ===== App Customization ===== -->
-	<SettingsSection id="settings-customization" title={m.settings_customization_title()}>
+	<SettingsSection id="settings-customization" title={m.settings_customization_title()} class={visibleSections['settings-customization'] ? '' : 'hidden'}>
 		<div class="border-b border-[var(--color-surface-border)] px-4 py-3">
 			<TextField
 				type="text"
 				label={m.settings_custom_app_name()}
 				placeholder={m.settings_custom_app_name_placeholder()}
-				value={settingsStore.settings.customAppName}
+				value={settingsStore.settings.customAppName || ''}
 				oninput={(e) => {
 					const target = e.currentTarget as HTMLInputElement;
 					settingsStore.update({ customAppName: target.value });
@@ -640,8 +818,8 @@
 	</SettingsSection>
 
 	<!-- ===== Semester ===== -->
-	<SettingsSection id="settings-semester" title={m.settings_semester()}>
-		<div class="border-b border-[var(--color-surface-border)] px-4 py-3">
+	<SettingsSection id="settings-semester" title={m.settings_semester()} class={visibleSections['settings-semester'] ? '' : 'hidden'}>
+		<div class="border-b border-[var(--color-surface-border)] px-4 py-3.5">
 			<div class="grid grid-cols-3 gap-2">
 				{#each semesterOptions as opt (opt.value)}
 					<button
@@ -657,23 +835,34 @@
 				{/each}
 			</div>
 		</div>
-		<div class="px-4 py-3">
-			<TextField
-				type="select"
-				label={m.settings_year()}
-				value={String(settingsStore.settings.year)}
-				options={yearOptions}
-				onchange={(e) => {
-					const n = Number((e.currentTarget as HTMLSelectElement).value);
-					settingsStore.update({ year: n });
-				}}
-			/>
+		<div class="flex items-center justify-between px-4 py-3.5">
+			<span class="text-sm font-medium text-[var(--color-nav-active)]">
+				{m.settings_year()}
+			</span>
+			<label class="relative inline-flex items-center">
+				<select
+					value={String(settingsStore.settings.year)}
+					onchange={(e) => {
+						const n = Number((e.currentTarget as HTMLSelectElement).value);
+						settingsStore.update({ year: n });
+					}}
+					class="h-8 min-w-[7.5rem] cursor-pointer appearance-none rounded-chip border border-[var(--color-surface-border)] bg-[var(--color-surface-card)] py-1 pl-3 pr-8 text-right text-xs font-bold text-[var(--color-nav-active)] outline-none transition-colors hover:bg-[var(--color-surface-muted)] focus:border-[var(--color-primary-500)] focus:ring-2 focus:ring-[var(--color-primary-500)]/25"
+					style="-webkit-appearance: none; -moz-appearance: none; appearance: none;"
+				>
+					{#each yearOptions as opt}
+						<option value={opt.value}>{opt.label}</option>
+					{/each}
+				</select>
+				<span class="pointer-events-none absolute right-2.5 top-1/2 flex -translate-y-1/2 text-[var(--color-nav-inactive)]">
+					<ChevronDown size={12} />
+				</span>
+			</label>
 		</div>
 	</SettingsSection>
 
 	<!-- ===== Location ===== -->
-	<SettingsSection id="settings-location" title={m.settings_location()}>
-		<div class="space-y-3 px-4 py-3">
+	<SettingsSection id="settings-location" title={m.settings_location()} class={visibleSections['settings-location'] ? '' : 'hidden'}>
+		<div class="space-y-3.5 px-4 py-3.5">
 			<TextField
 				type="text"
 				label={m.settings_location()}
@@ -707,115 +896,142 @@
 	</SettingsSection>
 
 	<!-- ===== Home ===== -->
-	<SettingsSection id="settings-home" title={m.settings_home()}>
+	<SettingsSection id="settings-home" title={m.settings_home()} class={visibleSections['settings-home'] ? '' : 'hidden'}>
 		<div
-			class="flex items-center justify-between border-b border-[var(--color-surface-border)] px-4 py-3"
+			class="flex items-center justify-between border-b border-[var(--color-surface-border)] px-4 py-3.5"
 		>
-			<span class="text-sm text-[var(--color-nav-active)]">{m.settings_home_weather()}</span>
+			<span class="text-sm font-medium text-[var(--color-nav-active)]">{m.settings_home_weather()}</span>
 			<Switch
 				checked={settingsStore.settings.homeShowWeather}
 				onchange={(v) => settingsStore.update({ homeShowWeather: v })}
 			/>
 		</div>
 		<div
-			class="flex items-center justify-between border-b border-[var(--color-surface-border)] px-4 py-3"
+			class="flex items-center justify-between border-b border-[var(--color-surface-border)] px-4 py-3.5"
 		>
-			<span class="text-sm text-[var(--color-nav-active)]">{m.settings_home_tools()}</span>
+			<span class="text-sm font-medium text-[var(--color-nav-active)]">{m.settings_home_tools()}</span>
 			<Switch
 				checked={settingsStore.settings.homeShowTools}
 				onchange={(v) => settingsStore.update({ homeShowTools: v })}
 			/>
 		</div>
 		<div
-			class="flex items-center justify-between border-b border-[var(--color-surface-border)] px-4 py-3"
+			class="flex items-center justify-between border-b border-[var(--color-surface-border)] px-4 py-3.5"
 		>
-			<span class="text-sm text-[var(--color-nav-active)]">{m.settings_home_external_links()}</span>
+			<span class="text-sm font-medium text-[var(--color-nav-active)]">{m.settings_home_external_links()}</span>
 			<Switch
 				checked={settingsStore.settings.homeShowExternalLinks}
 				onchange={(v) => settingsStore.update({ homeShowExternalLinks: v })}
 			/>
 		</div>
-		<div class="border-b border-[var(--color-surface-border)] px-4 py-3">
-			<label
-				for="settings-home-search-provider"
-				class="mb-2 block text-sm text-[var(--color-nav-active)]"
-			>
+		<div class="flex items-center justify-between border-b border-[var(--color-surface-border)] px-4 py-3.5">
+			<span class="text-sm font-medium text-[var(--color-nav-active)]">
 				検索エンジン
+			</span>
+			<label class="relative inline-flex items-center">
+				<select
+					id="settings-home-search-provider"
+					value={settingsStore.settings.homeSearchProvider}
+					onchange={(e) => {
+						const target = e.currentTarget as HTMLSelectElement;
+						settingsStore.update({ homeSearchProvider: target.value as SearchProviderId });
+					}}
+					class="h-8 min-w-[7.5rem] cursor-pointer appearance-none rounded-chip border border-[var(--color-surface-border)] bg-[var(--color-surface-card)] py-1 pl-3 pr-8 text-right text-xs font-bold text-[var(--color-nav-active)] outline-none transition-colors hover:bg-[var(--color-surface-muted)] focus:border-[var(--color-primary-500)] focus:ring-2 focus:ring-[var(--color-primary-500)]/25"
+					style="-webkit-appearance: none; -moz-appearance: none; appearance: none;"
+				>
+					{#each searchProviderOptions as opt}
+						<option value={opt.value}>{opt.label}</option>
+					{/each}
+				</select>
+				<span class="pointer-events-none absolute right-2.5 top-1/2 flex -translate-y-1/2 text-[var(--color-nav-inactive)]">
+					<ChevronDown size={12} />
+				</span>
 			</label>
-			<select
-				id="settings-home-search-provider"
-				value={settingsStore.settings.homeSearchProvider}
-				onchange={(e) => {
-					const target = e.currentTarget as HTMLSelectElement;
-					settingsStore.update({ homeSearchProvider: target.value as SearchProviderId });
-				}}
-				class="w-full rounded-chip border border-[var(--color-surface-border)] bg-[var(--color-surface-card)] px-3 py-2 text-sm text-[var(--color-nav-active)] outline-none focus:border-[var(--color-primary-500)] focus:ring-2 focus:ring-[var(--color-primary-100)]"
-			>
-				{#each searchProviderOptions as opt (opt.value)}
-					<option value={opt.value}>{opt.label}</option>
-				{/each}
-			</select>
 		</div>
-		<div class="border-b border-[var(--color-surface-border)] px-4 py-3">
-			<label
-				for="settings-home-weather-temp-unit"
-				class="mb-2 block text-sm text-[var(--color-nav-active)]"
-			>
+		<div class="flex items-center justify-between border-b border-[var(--color-surface-border)] px-4 py-3.5">
+			<span class="text-sm font-medium text-[var(--color-nav-active)]">
 				{m.settings_weather_temp_unit()}
+			</span>
+			<label class="relative inline-flex items-center">
+				<select
+					id="settings-home-weather-temp-unit"
+					value={settingsStore.settings.weatherTempUnit}
+					onchange={(e) => {
+						const target = e.currentTarget as HTMLSelectElement;
+						settingsStore.update({ weatherTempUnit: target.value as 'celsius' | 'fahrenheit' });
+					}}
+					class="h-8 min-w-[7.5rem] cursor-pointer appearance-none rounded-chip border border-[var(--color-surface-border)] bg-[var(--color-surface-card)] py-1 pl-3 pr-8 text-right text-xs font-bold text-[var(--color-nav-active)] outline-none transition-colors hover:bg-[var(--color-surface-muted)] focus:border-[var(--color-primary-500)] focus:ring-2 focus:ring-[var(--color-primary-500)]/25"
+					style="-webkit-appearance: none; -moz-appearance: none; appearance: none;"
+				>
+					{#each [
+						{ value: 'celsius', label: m.settings_weather_temp_unit_celsius() },
+						{ value: 'fahrenheit', label: m.settings_weather_temp_unit_fahrenheit() }
+					] as opt}
+						<option value={opt.value}>{opt.label}</option>
+					{/each}
+				</select>
+				<span class="pointer-events-none absolute right-2.5 top-1/2 flex -translate-y-1/2 text-[var(--color-nav-inactive)]">
+					<ChevronDown size={12} />
+				</span>
 			</label>
-			<select
-				id="settings-home-weather-temp-unit"
-				value={settingsStore.settings.weatherTempUnit}
-				onchange={(e) => {
-					const target = e.currentTarget as HTMLSelectElement;
-					settingsStore.update({ weatherTempUnit: target.value as 'celsius' | 'fahrenheit' });
-				}}
-				class="w-full rounded-chip border border-[var(--color-surface-border)] bg-[var(--color-surface-card)] px-3 py-2 text-sm text-[var(--color-nav-active)] outline-none focus:border-[var(--color-primary-500)] focus:ring-2 focus:ring-[var(--color-primary-100)]"
-			>
-				<option value="celsius">{m.settings_weather_temp_unit_celsius()}</option>
-				<option value="fahrenheit">{m.settings_weather_temp_unit_fahrenheit()}</option>
-			</select>
 		</div>
-		<div class="border-b border-[var(--color-surface-border)] px-4 py-3">
-			<label
-				for="settings-home-weather-time-format"
-				class="mb-2 block text-sm text-[var(--color-nav-active)]"
-			>
+		<div class="flex items-center justify-between border-b border-[var(--color-surface-border)] px-4 py-3.5">
+			<span class="text-sm font-medium text-[var(--color-nav-active)]">
 				{m.settings_weather_time_format()}
+			</span>
+			<label class="relative inline-flex items-center">
+				<select
+					id="settings-home-weather-time-format"
+					value={settingsStore.settings.weatherTimeFormat}
+					onchange={(e) => {
+						const target = e.currentTarget as HTMLSelectElement;
+						settingsStore.update({ weatherTimeFormat: target.value as 'minute' | 'second' });
+					}}
+					class="h-8 min-w-[7.5rem] cursor-pointer appearance-none rounded-chip border border-[var(--color-surface-border)] bg-[var(--color-surface-card)] py-1 pl-3 pr-8 text-right text-xs font-bold text-[var(--color-nav-active)] outline-none transition-colors hover:bg-[var(--color-surface-muted)] focus:border-[var(--color-primary-500)] focus:ring-2 focus:ring-[var(--color-primary-500)]/25"
+					style="-webkit-appearance: none; -moz-appearance: none; appearance: none;"
+				>
+					{#each [
+						{ value: 'minute', label: m.settings_weather_time_format_minute() },
+						{ value: 'second', label: m.settings_weather_time_format_second() }
+					] as opt}
+						<option value={opt.value}>{opt.label}</option>
+					{/each}
+				</select>
+				<span class="pointer-events-none absolute right-2.5 top-1/2 flex -translate-y-1/2 text-[var(--color-nav-inactive)]">
+					<ChevronDown size={12} />
+				</span>
 			</label>
-			<select
-				id="settings-home-weather-time-format"
-				value={settingsStore.settings.weatherTimeFormat}
-				onchange={(e) => {
-					const target = e.currentTarget as HTMLSelectElement;
-					settingsStore.update({ weatherTimeFormat: target.value as 'minute' | 'second' });
-				}}
-				class="w-full rounded-chip border border-[var(--color-surface-border)] bg-[var(--color-surface-card)] px-3 py-2 text-sm text-[var(--color-nav-active)] outline-none focus:border-[var(--color-primary-500)] focus:ring-2 focus:ring-[var(--color-primary-100)]"
-			>
-				<option value="minute">{m.settings_weather_time_format_minute()}</option>
-				<option value="second">{m.settings_weather_time_format_second()}</option>
-			</select>
 		</div>
-		<div class="border-b border-[var(--color-surface-border)] px-4 py-3">
-			<label for="settings-time-format" class="mb-2 block text-sm text-[var(--color-nav-active)]">
+		<div class="flex items-center justify-between border-b border-[var(--color-surface-border)] px-4 py-3.5">
+			<span class="text-sm font-medium text-[var(--color-nav-active)]">
 				{m.settings_time_format()}
+			</span>
+			<label class="relative inline-flex items-center">
+				<select
+					id="settings-time-format"
+					value={settingsStore.settings.timeFormat}
+					onchange={(e) => {
+						const target = e.currentTarget as HTMLSelectElement;
+						settingsStore.update({ timeFormat: target.value as '12h' | '24h' });
+					}}
+					class="h-8 min-w-[7.5rem] cursor-pointer appearance-none rounded-chip border border-[var(--color-surface-border)] bg-[var(--color-surface-card)] py-1 pl-3 pr-8 text-right text-xs font-bold text-[var(--color-nav-active)] outline-none transition-colors hover:bg-[var(--color-surface-muted)] focus:border-[var(--color-primary-500)] focus:ring-2 focus:ring-[var(--color-primary-500)]/25"
+					style="-webkit-appearance: none; -moz-appearance: none; appearance: none;"
+				>
+					{#each [
+						{ value: '12h', label: m.settings_time_format_12h() },
+						{ value: '24h', label: m.settings_time_format_24h() }
+					] as opt}
+						<option value={opt.value}>{opt.label}</option>
+					{/each}
+				</select>
+				<span class="pointer-events-none absolute right-2.5 top-1/2 flex -translate-y-1/2 text-[var(--color-nav-inactive)]">
+					<ChevronDown size={12} />
+				</span>
 			</label>
-			<select
-				id="settings-time-format"
-				value={settingsStore.settings.timeFormat}
-				onchange={(e) => {
-					const target = e.currentTarget as HTMLSelectElement;
-					settingsStore.update({ timeFormat: target.value as '12h' | '24h' });
-				}}
-				class="w-full rounded-chip border border-[var(--color-surface-border)] bg-[var(--color-surface-card)] px-3 py-2 text-sm text-[var(--color-nav-active)] outline-none focus:border-[var(--color-primary-500)] focus:ring-2 focus:ring-[var(--color-primary-100)]"
-			>
-				<option value="12h">{m.settings_time_format_12h()}</option>
-				<option value="24h">{m.settings_time_format_24h()}</option>
-			</select>
 		</div>
 		{#if Capacitor.isNativePlatform()}
-			<div class="flex items-center justify-between px-4 py-3">
-				<span class="text-sm text-[var(--color-nav-active)]">{m.settings_open_links_in_app()}</span>
+			<div class="flex items-center justify-between px-4 py-3.5">
+				<span class="text-sm font-medium text-[var(--color-nav-active)]">{m.settings_open_links_in_app()}</span>
 				<Switch
 					checked={settingsStore.settings.openLinksInApp}
 					onchange={(v) => settingsStore.update({ openLinksInApp: v })}
@@ -825,58 +1041,87 @@
 	</SettingsSection>
 
 	<!-- ===== Timetable ===== -->
-	<SettingsSection id="settings-timetable" title={m.settings_timetable()}>
-		<div class="border-b border-[var(--color-surface-border)] px-4 py-3">
-			<TextField
-				type="select"
-				label={m.settings_timetable_day_range()}
-				value={String(settingsStore.settings.timetableDayRange)}
-				options={timetableDayOptions}
-				onchange={(e) => {
-					const value = Number((e.currentTarget as HTMLSelectElement).value) as 5 | 6 | 7;
-					settingsStore.update({ timetableDayRange: value });
-				}}
-			/>
+	<SettingsSection id="settings-timetable" title={m.settings_timetable()} class={visibleSections['settings-timetable'] ? '' : 'hidden'}>
+		<div class="flex items-center justify-between border-b border-[var(--color-surface-border)] px-4 py-3.5">
+			<span class="text-sm font-medium text-[var(--color-nav-active)]">
+				{m.settings_timetable_day_range()}
+			</span>
+			<label class="relative inline-flex items-center">
+				<select
+					value={String(settingsStore.settings.timetableDayRange)}
+					onchange={(e) => {
+						const value = Number((e.currentTarget as HTMLSelectElement).value) as 5 | 6 | 7;
+						settingsStore.update({ timetableDayRange: value });
+					}}
+					class="h-8 min-w-[7.5rem] cursor-pointer appearance-none rounded-chip border border-[var(--color-surface-border)] bg-[var(--color-surface-card)] py-1 pl-3 pr-8 text-right text-xs font-bold text-[var(--color-nav-active)] outline-none transition-colors hover:bg-[var(--color-surface-muted)] focus:border-[var(--color-primary-500)] focus:ring-2 focus:ring-[var(--color-primary-500)]/25"
+					style="-webkit-appearance: none; -moz-appearance: none; appearance: none;"
+				>
+					{#each timetableDayOptions as opt}
+						<option value={opt.value}>{opt.label}</option>
+					{/each}
+				</select>
+				<span class="pointer-events-none absolute right-2.5 top-1/2 flex -translate-y-1/2 text-[var(--color-nav-inactive)]">
+					<ChevronDown size={12} />
+				</span>
+			</label>
 		</div>
-		<div class="border-b border-[var(--color-surface-border)] px-4 py-3">
-			<TextField
-				type="select"
-				label={m.settings_timetable_period_range()}
-				value={String(settingsStore.settings.timetablePeriodRange)}
-				options={timetablePeriodOptions}
-				onchange={(e) => {
-					const value = Number((e.currentTarget as HTMLSelectElement).value) as 4 | 5 | 6 | 7;
-					settingsStore.update({ timetablePeriodRange: value });
-				}}
-			/>
+		<div class="flex items-center justify-between border-b border-[var(--color-surface-border)] px-4 py-3.5">
+			<span class="text-sm font-medium text-[var(--color-nav-active)]">
+				{m.settings_timetable_period_range()}
+			</span>
+			<label class="relative inline-flex items-center">
+				<select
+					value={String(settingsStore.settings.timetablePeriodRange)}
+					onchange={(e) => {
+						const value = Number((e.currentTarget as HTMLSelectElement).value) as 4 | 5 | 6 | 7;
+						settingsStore.update({ timetablePeriodRange: value });
+					}}
+					class="h-8 min-w-[7.5rem] cursor-pointer appearance-none rounded-chip border border-[var(--color-surface-border)] bg-[var(--color-surface-card)] py-1 pl-3 pr-8 text-right text-xs font-bold text-[var(--color-nav-active)] outline-none transition-colors hover:bg-[var(--color-surface-muted)] focus:border-[var(--color-primary-500)] focus:ring-2 focus:ring-[var(--color-primary-500)]/25"
+					style="-webkit-appearance: none; -moz-appearance: none; appearance: none;"
+				>
+					{#each timetablePeriodOptions as opt}
+						<option value={opt.value}>{opt.label}</option>
+					{/each}
+				</select>
+				<span class="pointer-events-none absolute right-2.5 top-1/2 flex -translate-y-1/2 text-[var(--color-nav-inactive)]">
+					<ChevronDown size={12} />
+				</span>
+			</label>
 		</div>
-		<div class="border-b border-[var(--color-surface-border)] px-4 py-3">
-			<TextField
-				type="select"
-				label={m.settings_timetable_ondemand_cols()}
-				value={String(settingsStore.settings.timetableOndemandCols)}
-				options={timetableOndemandOptions}
-				onchange={(e) => {
-					const value = Number((e.currentTarget as HTMLSelectElement).value) as 0 | 1 | 2 | 3;
-					settingsStore.update({ timetableOndemandCols: value });
-				}}
-			/>
+		<div class="flex items-center justify-between border-b border-[var(--color-surface-border)] px-4 py-3.5">
+			<span class="text-sm font-medium text-[var(--color-nav-active)]">
+				{m.settings_timetable_ondemand_cols()}
+			</span>
+			<label class="relative inline-flex items-center">
+				<select
+					value={String(settingsStore.settings.timetableOndemandCols)}
+					onchange={(e) => {
+						const value = Number((e.currentTarget as HTMLSelectElement).value) as 0 | 1 | 2 | 3;
+						settingsStore.update({ timetableOndemandCols: value });
+					}}
+					class="h-8 min-w-[7.5rem] cursor-pointer appearance-none rounded-chip border border-[var(--color-surface-border)] bg-[var(--color-surface-card)] py-1 pl-3 pr-8 text-right text-xs font-bold text-[var(--color-nav-active)] outline-none transition-colors hover:bg-[var(--color-surface-muted)] focus:border-[var(--color-primary-500)] focus:ring-2 focus:ring-[var(--color-primary-500)]/25"
+					style="-webkit-appearance: none; -moz-appearance: none; appearance: none;"
+				>
+					{#each timetableOndemandOptions as opt}
+						<option value={opt.value}>{opt.label}</option>
+					{/each}
+				</select>
+				<span class="pointer-events-none absolute right-2.5 top-1/2 flex -translate-y-1/2 text-[var(--color-nav-inactive)]">
+					<ChevronDown size={12} />
+				</span>
+			</label>
 		</div>
-		<div
-			class="flex items-center justify-between border-b border-[var(--color-surface-border)] px-4 py-3"
-		>
-			<span class="text-sm text-[var(--color-nav-active)]"
-				>{m.settings_timetable_transparent()}</span
-			>
+		<div class="flex items-center justify-between border-b border-[var(--color-surface-border)] px-4 py-3.5">
+			<span class="text-sm font-medium text-[var(--color-nav-active)]">
+				{m.settings_timetable_transparent()}
+			</span>
 			<Switch
 				checked={settingsStore.settings.timetableTransparent}
 				onchange={(v) => settingsStore.update({ timetableTransparent: v })}
 			/>
 		</div>
-		<div
-			class="flex items-center justify-between border-b border-[var(--color-surface-border)] px-4 py-3"
-		>
-			<span class="text-sm text-[var(--color-nav-active)]">{m.settings_bg_image_all_pages()}</span>
+		<div class="flex items-center justify-between px-4 py-3.5">
+			<span class="text-sm font-medium text-[var(--color-nav-active)]">{m.settings_bg_image_all_pages()}</span>
 			<Switch
 				checked={settingsStore.settings.bgImageAllPages}
 				onchange={(v) => settingsStore.update({ bgImageAllPages: v })}
@@ -889,7 +1134,7 @@
 			<div class="flex flex-col gap-3">
 				{#if settingsStore.settings.timetableBgImage}
 					<div
-						class="relative w-32 aspect-[3/4] rounded-card overflow-hidden border border-[var(--color-surface-border)] shadow-sm bg-[var(--color-surface-muted)]"
+						class="relative w-32 aspect-[3/4] rounded-card overflow-hidden border border-[var(--color-surface-border)] bg-[var(--color-surface-muted)]"
 					>
 						<img
 							src={settingsStore.settings.timetableBgImage}
@@ -977,7 +1222,7 @@
 	</SettingsSection>
 
 	<!-- ===== Calendar ===== -->
-	<SettingsSection id="settings-calendar" title={m.settings_calendar()}>
+	<SettingsSection id="settings-calendar" title={m.settings_calendar()} class={visibleSections['settings-calendar'] ? '' : 'hidden'}>
 		<div class="border-b border-[var(--color-surface-border)] px-4 py-3">
 			<div class="mb-2 text-sm font-medium text-[var(--color-nav-active)]">
 				{m.settings_calendar_week_start()}
@@ -1063,7 +1308,7 @@
 	</SettingsSection>
 
 	<!-- ===== Attendance ===== -->
-	<SettingsSection id="settings-attendance" title={m.settings_attendance()}>
+	<SettingsSection id="settings-attendance" title={m.settings_attendance()} class={visibleSections['settings-attendance'] ? '' : 'hidden'}>
 		<div class="px-4 py-3">
 			<Slider
 				label={m.settings_attendance_max_absences()}
@@ -1169,63 +1414,219 @@
 		{/if}
 	</SettingsSection>
 
-	<!-- ===== Data ===== -->
-	<SettingsSection id="settings-data" title={m.settings_data()}>
-		<div class="grid grid-cols-2 gap-3 border-b border-[var(--color-surface-border)] px-4 py-3">
-			<Button variant="secondary" size="sm" onclick={handleExport}>
-				<Download size={16} />
-				{m.settings_data_export()}
-			</Button>
-			<label
-				class="inline-flex h-8 cursor-pointer items-center justify-center gap-2 rounded-chip border border-[var(--color-surface-border)] bg-[var(--color-surface-card)] px-3 text-sm font-medium text-[var(--color-nav-active)] transition-colors hover:bg-[var(--color-surface-muted)]"
-			>
-				<Upload size={16} />
-				{m.settings_data_import()}
-				<input type="file" accept="application/json" class="hidden" onchange={handleImport} />
-			</label>
-		</div>
-		<div class="px-4 py-3">
-			<Button variant="danger" size="sm" class="w-full" onclick={() => (showClearConfirm = true)}>
-				<Trash2 size={16} />
-				{m.settings_data_clear()}
-			</Button>
-		</div>
-	</SettingsSection>
+	<!-- ===== Modular Feature Configuration ===== -->
+	<SettingsSection id="settings-features" title="アプリの機能配置設定" class={visibleSections['settings-features'] ? '' : 'hidden'}>
+		<!-- バーの配置 -->
+		<div class="border-b border-[var(--color-surface-border)] px-4 py-3 space-y-3">
+			<h4 class="text-xs font-bold text-[var(--color-nav-active)]">
+				{m.settings_features_bar()}
+			</h4>
 
-	<!-- ===== Account ===== -->
-	<SettingsSection id="settings-account" title={m.settings_account()}>
-		<div class="px-4 py-3">
-			{#if userDataStore.rsConnected}
-				<div class="mb-3 flex flex-col gap-1 text-sm text-[var(--color-nav-active)]">
-					<div class="flex items-center gap-2">
-						<Cloud size={16} class="text-[var(--color-success-500)]" />
-						{m.settings_account_connected()}
-					</div>
-					{#if getConnectedUserAddress()}
-						<div class="text-xs text-[var(--color-nav-inactive)] pl-6 font-mono">
-							{getConnectedUserAddress()}
+			<!-- 選択済み（順序あり）-->
+			{#if tempBarFeatures.length > 0}
+				<div class="space-y-1.5">
+					<p class="text-[10px] font-semibold text-[var(--color-nav-inactive)] uppercase tracking-wide">バーの順番（左→右）</p>
+					{#each tempBarFeatures as id, i (id)}
+						{@const f = APP_FEATURES.find((f) => f.id === id)}
+						{#if f}
+							<!-- svelte-ignore a11y_no_static_element_interactions -->
+							<div
+								draggable="true"
+								ondragstart={() => handleBarDragStart(i)}
+								ondragover={(e) => handleBarDragOver(e, i)}
+								ondragend={handleBarDragEnd}
+								class="flex items-center gap-2 rounded-chip border border-[var(--color-primary-200)] bg-[var(--color-primary-50)] px-3 py-2 cursor-move transition-opacity {draggingBarIndex === i ? 'opacity-40' : ''}"
+							>
+								<GripVertical size={14} class="text-[var(--color-nav-inactive)] shrink-0" />
+								<span class="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-[var(--color-primary-500)] text-[10px] font-black text-white">{i + 1}</span>
+								<span class="text-[var(--color-nav-inactive)] shrink-0"><f.icon size={14} /></span>
+								<span class="flex-1 text-xs font-bold text-[var(--color-nav-active)] truncate">{getFeatureName(f.id)}</span>
+								<div class="flex gap-1 shrink-0">
+									<button
+										type="button"
+										onclick={() => moveBarFeature(id, -1)}
+										disabled={i === 0}
+										class="flex h-6 w-6 items-center justify-center rounded border border-[var(--color-surface-border)] bg-[var(--color-surface-card)] text-[var(--color-nav-inactive)] transition-colors hover:bg-[var(--color-surface-muted)] disabled:opacity-30"
+										aria-label="上へ"
+									>
+										<ChevronUp size={12} />
+									</button>
+									<button
+										type="button"
+										onclick={() => moveBarFeature(id, 1)}
+										disabled={i === tempBarFeatures.length - 1}
+										class="flex h-6 w-6 items-center justify-center rounded border border-[var(--color-surface-border)] bg-[var(--color-surface-card)] text-[var(--color-nav-inactive)] transition-colors hover:bg-[var(--color-surface-muted)] disabled:opacity-30"
+										aria-label="下へ"
+									>
+										<ChevronDown size={12} />
+									</button>
+									<button
+										type="button"
+										onclick={() => toggleBarFeature(id, false)}
+										class="flex h-6 w-6 items-center justify-center rounded border border-[var(--color-surface-border)] bg-[var(--color-surface-card)] text-[var(--color-nav-inactive)] transition-colors hover:text-[var(--color-danger-500)]"
+										aria-label="バーから削除"
+									>
+										<X size={11} />
+									</button>
+								</div>
+							</div>
+						{/if}
+					{/each}
+				</div>
+			{/if}
+
+			<!-- 未選択（追加候補）-->
+			{#if unselectedBar.length > 0}
+				<div class="space-y-1.5">
+					<p class="text-[10px] font-semibold text-[var(--color-nav-inactive)] uppercase tracking-wide">追加できる機能 {tempBarFeatures.length >= 5 ? '（上限5つ）' : ''}</p>
+					{#each unselectedBar as f (f.id)}
+						<div class="flex items-center gap-2 rounded-chip border border-[var(--color-surface-border)] bg-[var(--color-surface-muted)]/40 px-3 py-2">
+							<span class="text-[var(--color-nav-inactive)] shrink-0"><f.icon size={14} /></span>
+							<span class="flex-1 text-xs font-bold text-[var(--color-nav-inactive)] truncate">{getFeatureName(f.id)}</span>
+							<button
+								type="button"
+								onclick={() => toggleBarFeature(f.id, true)}
+								disabled={tempBarFeatures.length >= 5}
+								class="flex h-6 items-center gap-1 rounded border border-[var(--color-surface-border)] bg-[var(--color-surface-card)] px-2 text-[10px] font-bold text-[var(--color-nav-inactive)] transition-colors hover:border-[var(--color-primary-400)] hover:text-[var(--color-primary-600)] disabled:opacity-30"
+							>
+								<Plus size={10} /> 追加
+							</button>
 						</div>
-					{/if}
+					{/each}
 				</div>
-				<Button variant="secondary" size="sm" class="w-full" onclick={handleDisconnect}>
-					<CloudOff size={16} />
-					{m.settings_account_disconnect()}
-				</Button>
-			{:else}
-				<div class="mb-3 flex items-center gap-2 text-sm text-[var(--color-nav-inactive)]">
-					<CloudOff size={16} />
-					{m.settings_account_disconnected()}
+			{/if}
+		</div>
+
+		<!-- ホームの配置 & レイアウト設定 -->
+		<div class="border-b border-[var(--color-surface-border)] px-4 py-3 space-y-3">
+			<h4 class="text-xs font-bold text-[var(--color-nav-active)]">
+				{m.settings_features_home()}
+			</h4>
+
+			<!-- 選択済み（順序あり）-->
+			{#if tempHomeFeatures.length > 0}
+				<div class="space-y-1.5">
+					<p class="text-[10px] font-semibold text-[var(--color-nav-inactive)] uppercase tracking-wide">ホームの表示順</p>
+					{#each tempHomeFeatures as id, i (id)}
+						{@const f = APP_FEATURES.find((f) => f.id === id && f.id !== 'dashboard')}
+						{#if f}
+							{@const isWidget = ['timetable', 'todo', 'calendar', 'attendance'].includes(f.id)}
+							{@const layout = settingsStore.settings.homeFeatureLayouts?.[f.id] || 'button'}
+							<!-- svelte-ignore a11y_no_static_element_interactions -->
+							<div
+								draggable="true"
+								ondragstart={() => handleHomeDragStart(i)}
+								ondragover={(e) => handleHomeDragOver(e, i)}
+								ondragend={handleHomeDragEnd}
+								class="rounded-chip border border-[var(--color-primary-200)] bg-[var(--color-primary-50)] px-3 py-2 space-y-1.5 cursor-move transition-opacity {draggingHomeIndex === i ? 'opacity-40' : ''}"
+							>
+								<div class="flex items-center gap-2">
+									<GripVertical size={14} class="text-[var(--color-nav-inactive)] shrink-0" />
+									<span class="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-[var(--color-primary-500)] text-[10px] font-black text-white">{i + 1}</span>
+									<span class="text-[var(--color-nav-inactive)] shrink-0"><f.icon size={14} /></span>
+									<span class="flex-1 text-xs font-bold text-[var(--color-nav-active)] truncate">{getFeatureName(f.id)}</span>
+									<div class="flex gap-1 shrink-0">
+										<button
+											type="button"
+											onclick={() => moveHomeFeature(id, -1)}
+											disabled={i === 0}
+											class="flex h-6 w-6 items-center justify-center rounded border border-[var(--color-surface-border)] bg-[var(--color-surface-card)] text-[var(--color-nav-inactive)] transition-colors hover:bg-[var(--color-surface-muted)] disabled:opacity-30"
+											aria-label="上へ"
+										>
+											<ChevronUp size={12} />
+										</button>
+										<button
+											type="button"
+											onclick={() => moveHomeFeature(id, 1)}
+											disabled={i === tempHomeFeatures.length - 1}
+											class="flex h-6 w-6 items-center justify-center rounded border border-[var(--color-surface-border)] bg-[var(--color-surface-card)] text-[var(--color-nav-inactive)] transition-colors hover:bg-[var(--color-surface-muted)] disabled:opacity-30"
+											aria-label="下へ"
+										>
+											<ChevronDown size={12} />
+										</button>
+										<button
+											type="button"
+											onclick={() => toggleHomeFeature(id, false)}
+											class="flex h-6 w-6 items-center justify-center rounded border border-[var(--color-surface-border)] bg-[var(--color-surface-card)] text-[var(--color-nav-inactive)] transition-colors hover:text-[var(--color-danger-500)]"
+											aria-label="ホームから削除"
+										>
+											<X size={11} />
+										</button>
+									</div>
+								</div>
+								{#if isWidget}
+									<div class="flex items-center gap-2 pl-7">
+										<span class="text-[10px] text-[var(--color-nav-inactive)] font-semibold">表示形式:</span>
+										<button
+											type="button"
+											onclick={() => toggleHomeLayout(f.id)}
+											class="rounded border border-[var(--color-surface-border)] bg-[var(--color-surface-card)] px-2 py-0.5 text-[10px] font-bold text-[var(--color-primary-700)] hover:bg-[var(--color-surface-muted)] transition-colors"
+										>
+											{layout === 'widget' ? m.settings_feature_layout_widget() : m.settings_feature_layout_button()}
+										</button>
+									</div>
+								{/if}
+							</div>
+						{/if}
+					{/each}
 				</div>
-				<Button variant="primary" size="sm" class="w-full" onclick={handleConnect}>
-					<Cloud size={16} />
-					{m.settings_account_connect()}
-				</Button>
+			{/if}
+
+			<!-- 未選択（追加候補）-->
+			{#if unselectedHome.length > 0}
+				<div class="space-y-1.5">
+					<p class="text-[10px] font-semibold text-[var(--color-nav-inactive)] uppercase tracking-wide">追加できる機能</p>
+					{#each unselectedHome as f (f.id)}
+						<div class="flex items-center gap-2 rounded-chip border border-[var(--color-surface-border)] bg-[var(--color-surface-muted)]/40 px-3 py-2">
+							<span class="text-[var(--color-nav-inactive)] shrink-0"><f.icon size={14} /></span>
+							<span class="flex-1 text-xs font-bold text-[var(--color-nav-inactive)] truncate">{getFeatureName(f.id)}</span>
+							<button
+								type="button"
+								onclick={() => toggleHomeFeature(f.id, true)}
+								class="flex h-6 items-center gap-1 rounded border border-[var(--color-surface-border)] bg-[var(--color-surface-card)] px-2 text-[10px] font-bold text-[var(--color-nav-inactive)] transition-colors hover:border-[var(--color-primary-400)] hover:text-[var(--color-primary-600)]"
+							>
+								<Plus size={10} /> 追加
+							</button>
+						</div>
+					{/each}
+				</div>
 			{/if}
 		</div>
 	</SettingsSection>
 
+	<!-- ===== Widget Settings ===== -->
+	<SettingsSection id="settings-widget" title={m.settings_widget_theme_title()} class={visibleSections['settings-widget'] ? '' : 'hidden'}>
+		<div class="flex items-center justify-between border-b border-[var(--color-surface-border)] px-4 py-3">
+			<div class="flex flex-col gap-0.5">
+				<span class="text-sm font-semibold text-[var(--color-nav-active)]">
+					{m.settings_widget_use_system_theme()}
+				</span>
+			</div>
+			<Switch
+				checked={settingsStore.settings.widgetUseSystemTheme}
+				onchange={(v) => settingsStore.update({ widgetUseSystemTheme: v })}
+			/>
+		</div>
+		{#if !settingsStore.settings.widgetUseSystemTheme}
+			<div class="flex items-center justify-between px-4 py-3">
+				<span class="text-sm font-semibold text-[var(--color-nav-active)]">
+					{m.settings_widget_theme_color()}
+				</span>
+				<input
+					type="color"
+					value={settingsStore.settings.widgetThemeColor}
+					oninput={(e) =>
+						settingsStore.update({
+							widgetThemeColor: (e.currentTarget as HTMLInputElement).value
+						})}
+					class="h-9 w-14 cursor-pointer rounded border border-[var(--color-surface-border)] bg-transparent p-0.5 focus:outline-none"
+				/>
+			</div>
+		{/if}
+	</SettingsSection>
+
 	<!-- ===== About ===== -->
-	<SettingsSection id="settings-about" title={m.settings_about()}>
+	<SettingsSection id="settings-about" title={m.settings_about()} class={visibleSections['settings-about'] ? '' : 'hidden'}>
 		<div
 			class="flex items-center justify-between border-b border-[var(--color-surface-border)] px-4 py-3"
 		>
@@ -1332,5 +1733,3 @@
 	</form>
 </Modal>
 
-<!-- ===== Settings Search Palette ===== -->
-<SettingsSearch items={searchItems} />
